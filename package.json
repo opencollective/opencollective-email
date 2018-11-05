@@ -1,0 +1,38 @@
+{
+  "name": "opencollective-email",
+  "version": "1.0.0",
+  "description": "The email service for transparent and inclusive open collectives",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/opencollective/opencollective-email.git"
+  },
+  "keywords": [
+    "opencollective",
+    "email",
+    "collective",
+    "group",
+    "imap"
+  ],
+  "author": "Xavier Damman <@xdamman>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/opencollective/opencollective-email/issues"
+  },
+  "homepage": "https://github.com/opencollective/opencollective-email#readme",
+  "dependencies": {
+    "dotenv": "^6.1.0",
+    "imap": "^0.8.19",
+    "mailparser-mit": "^0.6.2",
+    "sequelize": "^4.41.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^8.0.4",
+    "babel-plugin-add-module-exports": "^1.0.0"
+  }
+}
