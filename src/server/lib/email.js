@@ -8,10 +8,10 @@ import config from 'config';
 import { extractInboxAndTagsFromEmailAddress, extractNamesAndEmailsFromString } from '../lib/utils';
 import { createJwt } from '../lib/auth';
 
-import * as ShortCode from '../templates/shortcode.email.jsx';
-import * as CreateUser from '../templates/createUser.email.jsx';
-import * as ThreadCreated from '../templates/threadCreated.email.jsx';
-import * as Post from '../templates/post.email.jsx';
+import * as ShortCode from '../templates/shortcode.email.js';
+import * as CreateUser from '../templates/createUser.email.js';
+import * as ThreadCreated from '../templates/threadCreated.email.js';
+import * as Post from '../templates/post.email.js';
 import models from '../models';
 
 const templates = {
