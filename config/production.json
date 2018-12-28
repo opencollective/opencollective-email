@@ -1,0 +1,21 @@
+{
+  "server": {
+    "database": {
+      "options": {
+        "port": 5432,
+        "dialect": "postgres",
+        "protocol": "postgres",
+        "logging": true,
+        "pool": {
+          "min": 10,
+          "max": 50,
+          "acquire": 60000
+        },
+        "dialectOptions": {
+          "ssl": true
+        },
+        "benchmark": true
+      }
+    }
+  }
+}
