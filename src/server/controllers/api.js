@@ -10,7 +10,7 @@ export const retrieveEmail = async ({ mailServer, messageId }) => {
     json: true,
     auth: {
       user: 'api',
-      pass: get(config, 'mailgun.apiKey'),
+      pass: get(config, 'email.mailgun.apiKey'),
     },
   };
   const url = `https://${mailServer}.api.mailgun.net/v3/domains/${get(
