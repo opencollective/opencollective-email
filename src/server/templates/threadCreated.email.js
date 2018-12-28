@@ -17,15 +17,15 @@ const styles = {
   },
 };
 
-export const subject = ({ group, followersCount }) => {
-  return `Message sent to ${group} (${followersCount} followers)`;
+export const subject = ({ groupSlug, followersCount }) => {
+  return `Message sent to ${groupSlug} (${followersCount} followers)`;
 };
 
-export const body = ({ group, followersCount }) => {
+export const body = ({ groupSlug, followersCount }) => {
   return (
     <Layout>
       <p>
-        Your message has been sent to the group {group}.<br />
+        Your message has been sent to the group {groupSlug}.<br />
         {followersCount} people are currently following this group.
       </p>
     </Layout>

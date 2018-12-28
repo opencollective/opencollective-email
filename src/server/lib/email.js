@@ -44,8 +44,11 @@ const generateCustomTemplate = (options, data) => {
         <title>${options.title}</title>
       </head>
       <body>
-        ${options.bodyContent}
-        ${unsubscribeSnippet}
+      <span style="display:none !important,color:#FFFFFF,margin:0,padding:0,font-size:1px,line-height:1px">
+        ${options.previewText}
+      </span>
+      ${options.bodyContent}
+      ${unsubscribeSnippet}
       </body>
     </html>
   `;
@@ -76,7 +79,7 @@ libemail.parseHeaders = function(email) {
   const recipient = email.recipient || email.recipients; // mailgun's inconsistent api
   const { inbox, tags } = extractInboxAndTagsFromEmailAddress(recipient);
   const recipients = extractNamesAndEmailsFromString(`${email.To}, ${email.Cc}`).filter(r => {
-    return r.email.toLowerCase() !== sender && r.email.toLowerCase() !== recipient.toLowerCase();
+    return r.email && r.email.toLowerCase() !== sender && r.email.toLowerCase() !== recipient.toLowerCase();
   });
   return { sender, groupSlug: inbox, tags, recipients };
 };

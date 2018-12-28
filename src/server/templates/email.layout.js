@@ -18,26 +18,12 @@ const styles = {
   },
 };
 
-export default ({ preview, children, maxWidth }) => {
+export default ({ children, maxWidth }) => {
   return (
     <Table width={maxWidth}>
       <TBody>
         <TR>
-          <TD style={styles.body}>
-            <span
-              style={{
-                display: 'none !important',
-                color: '#FFFFFF',
-                margin: 0,
-                padding: 0,
-                fontSize: '1px',
-                lineHeight: '1px',
-              }}
-            >
-              {preview}
-            </span>
-            {children}
-          </TD>
+          <TD style={styles.body}>{children}</TD>
         </TR>
         <TR>
           <TD style={styles.footer}>{get(config, 'collective.name')} - Open Collective</TD>

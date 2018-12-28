@@ -28,10 +28,10 @@ export const subject = () => {
 };
 
 export const previewText = ({ groupSlug }) => {
-  return `Please confirm sending your email to ${groupSlug}@${get(config, 'email.domain')}`;
+  return `Please confirm sending your email to ${groupSlug}@${get(config, 'collective.domain')}`;
 };
 
-export const body = ({ confirmationUrl }) => {
+export const body = ({ groupSlug, confirmationUrl }) => {
   return (
     <Layout>
       <p>
@@ -43,9 +43,9 @@ export const body = ({ confirmationUrl }) => {
       <p>To continue, click on the button below.</p>
       <center>
         <a style={styles.btn} href={confirmationUrl}>
-          create my account
+          post my email
           <br />
-          and publish my email
+          to the {groupSlug} group
         </a>
       </center>
       <p style={styles.disclaimer}>

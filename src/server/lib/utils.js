@@ -1,5 +1,12 @@
 import { uniq, uniqBy } from 'lodash';
 
+export const isValidEmail = email => {
+  if (typeof email !== 'string') return false;
+  return email.match(
+    /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+  );
+};
+
 export const extractEmailsFromString = str => {
   const matches = str.match(/([^<@\s]+@[^\.]+\.[^\s>,]+)/g);
   if (matches && matches.length > 0) {
@@ -23,7 +30,7 @@ export const extractNamesAndEmailsFromString = str => {
       };
     }
   });
-  return uniqBy(recipients, r => r.email);
+  return uniqBy(recipients.filter(r => isValidEmail(r.email)), r => r.email);
 };
 
 export const extractInboxAndTagsFromEmailAddress = emailAddress => {

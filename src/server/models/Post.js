@@ -89,7 +89,7 @@ module.exports = (sequelize, DataTypes) => {
             action = 'EDIT';
           } else {
             post.PostId = post.id;
-            await post.update({ PostId: post.id });
+            await post.update({ PostId: post.id, slug: `${post.slug}-${post.PostId}` });
           }
           const activityData = {
             action,
@@ -173,7 +173,7 @@ module.exports = (sequelize, DataTypes) => {
     // If it's a new thread, we reply to the sender to confirm that the topic has been created
     if (!parentPost) {
       const followers = await group.getFollowers();
-      data = { group: group.name, followersCount: followers.length };
+      data = { groupSlug, followersCount: followers.length };
       await libemail.sendTemplate('threadCreated', data, [user.email]);
       // We send the new post to followers of the group + the recipients
       const unsubscribeLabel = `Click here to stop receiving new emails sent to ${group.slug}@${get(
