@@ -6,6 +6,8 @@ PG_DATABASE="opencollective-email"
 if [ "$NODE_ENV" = "staging" ] || [ "$NODE_ENV" = "production" ]; then
   echo "- running db:migrate on $NODE_ENV environment"
   npm run db:migrate
+  echo "- building"
+  npm run build
   exit $?; # exit with return code of previous command
 fi
 
