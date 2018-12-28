@@ -76,9 +76,6 @@
     "semantic-ui-react": "^0.84.0",
     "sequelize": "^4.42.0",
     "serve-favicon": "^2.5.0",
-    "winston": "^3.1.0"
-  },
-  "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",
     "@babel/node": "^7.2.2",
@@ -88,6 +85,9 @@
     "babel-plugin-import": "^1.11.0",
     "babel-plugin-lodash": "^3.3.4",
     "babel-plugin-node": "^2.1.0",
+    "winston": "^3.1.0"
+  },
+  "devDependencies": {
     "eslint-plugin-react": "^7.11.1",
     "jest": "^23.6.0",
     "maildev": "^1.0.0-rc3",
