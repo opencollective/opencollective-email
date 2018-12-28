@@ -1,0 +1,34 @@
+{
+  "collective": {
+    "name": "Citizen Spring 🌱",
+    "slug": "citizenspring",
+    "domain": "citizenspring.be",
+    "website": "https://citizenspring.be"
+  },
+  "email": {
+    "from": "CitizenSpring🌱 <citizenspring@opencollective.eu>",
+    "mailgun": {
+      "user": "",
+      "password": "",
+      "apiKey": ""
+    }
+  },
+  "server": {
+    "database": {
+      "database": "citizenspring",
+      "username": "",
+      "password": "",
+      "options": {
+        "host": "127.0.0.1",
+        "dialect": "postgres",
+        "pool": {
+          "min": 5,
+          "max": 10,
+          "acquire": 1200000
+        },
+        "logging": false
+      }
+    },
+    "jwtSecret": "123"
+  }
+}

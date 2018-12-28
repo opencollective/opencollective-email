@@ -4,18 +4,35 @@
   "description": "The email service for transparent and inclusive open collectives",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "sh ./scripts/test.sh",
+    "dev": "nodemon --exec babel-node -- src/server/index.js",
+    "db:reset": "sh ./scripts/resetdb.sh",
+    "db:migrate:dev": "sh ./scripts/sequelize.sh -l db:migrate",
+    "db:migrate:dev:undo": "sh ./scripts/sequelize.sh -l db:migrate:undo",
+    "build": "npm run build:server && npm run build:next",
+    "build:server": "babel --copy-files ./src --out-dir ./dist",
+    "build:next": "next build dist",
+    "start": "NODE_ENV=production node dist/server/index.js",
+    "lint": "eslint \"src/**/*.js\" \"test/**/*.js\"",
+    "lint:fix": "npm run lint -- --fix",
+    "lint:quiet": "npm run lint -- --quiet",
+    "prettier": "prettier src/**/*.js test/**/*.js --write",
+    "clean": "rm -rf dist src/.next",
+    "postinstall": "sh ./scripts/postinstall.sh",
+    "maildev": "./node_modules/.bin/maildev -o"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/opencollective/opencollective-email.git"
   },
   "keywords": [
-    "opencollective",
     "email",
-    "collective",
-    "group",
-    "imap"
+    "mailing",
+    "newsletter",
+    "citizen",
+    "initiatives",
+    "open",
+    "collective"
   ],
   "author": "Xavier Damman <@xdamman>",
   "license": "MIT",
@@ -24,15 +41,60 @@
   },
   "homepage": "https://github.com/opencollective/opencollective-email#readme",
   "dependencies": {
-    "dotenv": "^6.1.0",
-    "imap": "^0.8.19",
-    "mailparser-mit": "^0.6.2",
-    "sequelize": "^4.41.0"
+    "@mdx-js/loader": "^0.16.6",
+    "@mdx-js/mdx": "^0.16.6",
+    "@zeit/next-mdx": "^1.2.0",
+    "apollo": "^2.1.8",
+    "apollo-errors": "^1.9.0",
+    "apollo-server-express": "^2.3.1",
+    "body-parser": "^1.18.3",
+    "config": "^3.0.1",
+    "debug": "^4.1.0",
+    "dotenv": "^6.2.0",
+    "express": "^4.16.4",
+    "express-graphql": "^0.7.1",
+    "graphql": "^14.0.2",
+    "graphql-type-json": "^0.2.1",
+    "jsonwebtoken": "^8.4.0",
+    "limax": "^1.7.0",
+    "lodash": "^4.17.11",
+    "moment": "^2.23.0",
+    "next": "^7.0.2",
+    "next-routes": "^1.4.2",
+    "nodemailer": "^4.7.0",
+    "nodemon": "^1.18.9",
+    "oy-vey": "^0.11.1",
+    "pg": "^7.7.1",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
+    "remark-emoji": "^2.0.2",
+    "remark-images": "^0.16.1",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2",
+    "semantic-ui-react": "^0.84.0",
+    "sequelize": "^4.42.0",
+    "serve-favicon": "^2.5.0",
+    "winston": "^3.1.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-loader": "^8.0.4",
-    "babel-plugin-add-module-exports": "^1.0.0"
+    "@babel/cli": "^7.2.3",
+    "@babel/node": "^7.2.2",
+    "babel-eslint": "^10.0.1",
+    "babel-plugin-import": "^1.11.0",
+    "babel-plugin-lodash": "^3.3.4",
+    "babel-plugin-node": "^2.1.0",
+    "eslint-plugin-react": "^7.11.1",
+    "jest": "^23.6.0",
+    "maildev": "^1.0.0-rc3",
+    "nock": "^10.0.5",
+    "prettier": "^1.15.3",
+    "sequelize-cli": "^5.4.0",
+    "sinon": "^7.2.2"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "src/lib",
+      "src/server"
+    ]
   }
 }

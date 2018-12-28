@@ -1,0 +1,37 @@
+{
+  "title": "#CitizenSpring🌱",
+  "description": "Citizens coming together to offer an alternative to political parties in the upcoming elections in Belgium",
+  "website": "https://citizenspring.be",
+  "logo": "static/images/icon.png",
+  "background": "static/images/background.jpg",
+  "home": {
+    "toplinks": [
+      {
+        "label": "Nederlands",
+        "url": "https://burgerlente.be"
+      },
+      {
+        "label": "French",
+        "url": "https://printempscitoyen.be"
+      }
+    ],
+    "buttons": [
+      {
+        "label": "Join a Working Group",
+        "url": "https://docs.google.com/spreadsheets/d/1YHUalDZ_cuiU7gxr2zDhoVoILkCTey19m9ZW2F600OI/edit?usp=sharing"
+      },
+      {
+        "label": "Join our Facebook Group",
+        "url": "https://www.facebook.com/groups/418364505368961/"
+      },
+      {
+        "label": "Follow us on Twitter",
+        "url": "https://twitter.com/citizen_spring"
+      },
+      {
+        "label": "Public Drive",
+        "url": "https://drive.google.com/drive/folders/1ooAOhv3OGXAforyuYUA9i2B0kb1uP471"
+      }
+    ]
+  }
+}

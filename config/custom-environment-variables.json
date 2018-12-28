@@ -1,0 +1,30 @@
+{
+  "collective": {
+    "name": "COLLECTIVE_NAME",
+    "slug": "COLLECTIVE_SLUG",
+    "domain": "COLLECTIVE_DOMAIN",
+    "website": "COLLECTIVE_WEBSITE"
+  },
+  "email": {
+    "from": "EMAIL_FROM",
+    "mailgun": {
+      "user": "MAILGUN_USER",
+      "password": "MAILGUN_PASSWORD",
+      "apiKey": "MAILGUN_API_KEY"
+    }
+  },
+  "server": {
+    "database": {
+      "database": "PG_DATABASE",
+      "username": "PG_USERNAME",
+      "password": "PG_PASSWORD",
+      "options": {
+        "host": "PG_HOST",
+        "pool": {
+          "max": "PG_MAX_CONNECTIONS"
+        }
+      }
+    },
+    "jwtSecret": "JWT_SECRET"
+  }
+}

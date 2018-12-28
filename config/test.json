@@ -1,0 +1,20 @@
+{
+  "server": {
+    "database": {
+      "database": "opencollective-email-test",
+      "username": "",
+      "password": "",
+      "options": {
+        "host": "127.0.0.1",
+        "dialect": "postgres",
+        "pool": {
+          "min": 5,
+          "max": 10,
+          "acquire": 1200000
+        },
+        "logging": false
+      }
+    },
+    "jwtSecret": "123"
+  }
+}

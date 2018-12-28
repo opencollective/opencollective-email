@@ -1,137 +1,97 @@
-
 # Open Collective Email
 
 The email service for transparent and inclusive open collectives
 
-
-
 ## Features
 
-**MVP (v1.0)**
+- Easily create group emails that anyone can follow linked to your domain name
+- Make sure all emails are published online for anyone to follow
+- GDPR friendly
 
-- Public website where everyone can see all emails sent to your generic email address (connect through IMAP)
+## The problem
 
-**v1.1**
+So you are starting a movement and you are self organizing in different working groups. That's the way to go! But how do you manage communications within and between those groups?
+Facebook? Well, it's evil and not inclusive. An increasing number of people are not on Facebook. It's not open source. It's financed by advertisement. It doesn't respect your privacy, etc.
 
-- Forward email to all followers of the group (only generic group for now)
-- Unfollow the group
+Emails? That's what we all end up using because –like it or not– it's still to this day the most inclusive communication channel. But let's be honest, it's a nightmare. It's spammy, it's hard to search, it's impossible to keep track of who is or is not in this or that mailing list, etc.
 
+Slack? We tried. Maybe you did too. It's too complicated for most people. Also, it's not searcheable and we end up answering the same questions again and again. It hasn't been built for open communities.
 
-**Later**
+So that's why we are starting building this email service to solve that very problem.
 
-- Create groups and (un)follow them
-- Search all emails
+## Design principles
 
+- All emails are published publicly on a website
+- Anyone can follow any group / thread (since all emails are public anyway)
+- To avoid the "oh no, not yet another tool that I have to check", people should be able to interact with the system solely by email. You don't have to know about any website to create or be part of any group
+- To optimize for signal Vs noise, by default, you don't receive replies to new threads unless you are explicitly mentioned or you explicitly opted in to follow that thread
 
-## Context
+## How it works
 
-One of the first things that an open collective needs is a way to communicate between themselves but also with the external world.
+When sending an email to `:group@youdomain.tld`, the email is dispatched to all admins of the group. Anyone can reply or subscribe to follow the thread. Subsequent emails in the thread are only sent to the people who opt in to follow it. Anyone can unfollow the thread at any time. All emails are anyway published online so people can catch up with them at any time.
 
-While most sophisticated groups try to use Slack, they often need to fall back to email because some people in the collective are not comfortable enough with those new tools.
+### How to create a user?
 
-Email is still by far the most inclusive communication tool but it's a pain for everyone.
+Just send an email to any group email (`:group@yourdomain.tld`). You will receive an email asking you to confirm the creation of your account.
 
-This Open Collective Email app tries to address that.
+### How to create a group?
 
-### Problems to solve
+Just send an email to `:group@yourdomain.tld`. If the group doesn't exist, it will ask you to confirm the creation of it. When confirmed, the new group is created and you become the first admin and follower of it. If you cc people, they will be added as admins as well.
 
-- Collectives don't have an email for people to reach out to
-- When they do, it's not transparent
-- Working groups are drowning in email threads
-- Hard to search past conversations
-- Hard to have a consolidated view of the highlights of a conversation
+### How to join a group?
 
-### What they need:
-- a general contact email (info@domain.tld)
-- a contact email for each working group (a mailing list)
+Send an empty email (empty subject and/or empty body) to the group and you will be added. You can also cc people you want to add (note that in that case they will receive an empty email coming from you).
 
+### How to remove someone?
 
-### How they currently solve this problem?
-They mostly use emails (Google Apps). But it quickly becomes unmanageable. Way too many emails, hard to include / remove people.
+Any time you receive an email, there is a link in the footer to unsubscribe (either from new emails sent to the group or from new emails in a given thread).
 
-They tried Slack but it doesn't work for them because at least 10-30% of the people have a hard time to work with it. That's a deal breaker for them.
+### How to mention someone?
 
-They also use WhatsApp but there is way too much information that is unstructured.
+Just add that person in cc. This will make sure that that person receives the email and all future responses to that thread even if that person was not following the group (that person can always opt in to unfollow the thread).
 
+## Install
 
-### Requirements:
-- every message should be publicly available online
-- people should be able to interact with the system solely by email
+### Requirements
 
+You need a [Mailgun](https://mailgun.com) account and a Postgres database.
 
-## Proposed solution
+### Running the server
 
-When sending an email to :group@collective.tld, the email is dispatched to all admins. Anyone can reply or subscribe to follow the thread. Subsequent emails in the thread are only sent to the people who opt in to follow it. Anyone can unfollow the thread at any time. All emails are anyway published online so people can catch up with them at any time.
+Everything is single repo to make it easy to get the service up and running with all its components.
 
+Just clone the repo then run `npm install` and copy `.env.sample` to `.env` and make sure you update it with your own environment variables. Then just run `npm run dev` and you should be good to go.
 
-## Implementation details
+## Development
 
-### Database
+### Stack
 
-#### Tables
+The stack is NodeJS, [NextJS](https://www.github.com/zeit/next.js), Postgres.
+We are also using Mailgun as the email service (it would be great to also add support for [Haraka](https://github.com/haraka/Haraka) in the future).
 
-##### Users
+### Email
 
-- id
-- name
-- email
-- imageUrl
-- createdAt
-- updatedAt
-- deletedAt
+To preview the emails being sent locally, you can run [`npm run maildev`](https://danfarrelly.nyc/MailDev/) then open `http://localhost:1080`. Make sure you set the environment variable `MAILDEV` when running `npm run dev`.
 
-##### Groups
-- id
-- CreatedByUserId
-- name
-- createdAt
-- updatedAt
-- deletedAt
+## TODO
 
-##### Relationships
+- [ ] customize welcome email with code of conduct
+- [ ] add support for inline images and attachments
 
-- id
-- UserId
-- GroupId
-- role (ADMIN / FOLLOWER)
-- createdAt
-- updatedAt
-- deletedAt
+## Features roadmap
 
-##### Messages
-Based on [MailParser](https://nodemailer.com/extras/mailparser/).
+The long term goal is to offer all the tools a citizen movement needs to organize.
+This includes:
 
-- id
-- FromUserId
-- GroupId
-- headers – a Map object with lowercase header keys
-- subject 
-- from is an address object for the From: header
-- to is an address object for the To: header
-- cc is an address object for the Cc: header
-- bcc is an address object for the Bcc: header (usually not present)
-- date is a Date object for the Date: header
-- messageId is the Message-ID value string
-- inReplyTo is the In-Reply-To value string
-- reply-to is an address object for the Cc: header
-- references is an array of referenced Message-ID values
-- html is the HTML body of the message. If the message included embedded images as cid: urls then these are all replaced with base64 formatted data: URIs
-- text is the plaintext body of the message
-- textAsHtml is the plaintext body of the message formatted as HTML
-
-##### Attachments
-
-Based on [MailParser](https://nodemailer.com/extras/mailparser/).
-
-- id
-- MessageId
-- filename: (if available) file name of the attachment
-- contentType: MIME type of the message
-- contentDisposition: content disposition type for the attachment, most probably “attachment”
-- checksum: a MD5 hash of the message content
-- size: message size in bytes
-- headers: a Map value that holds MIME headers for the attachment node
-- content: a Buffer that contains the attachment contents
-- contentId: the header value from ‘Content-ID’ (if present)
-- cid: contentId without < and >
-- related: if true then this attachment should not be offered for download (at least not in the main attachments list)
+- [x] Install on your own server and domain
+- [ ] Make it easy to install on your own server and domain
+- [ ] Landing page
+- [ ] Wiki
+- [ ] Let people register to follow your updates
+- [ ] Let people register as volunteers
+- [ ] Let people create and register to working groups
+- [ ] Let people post messages to working groups
+- [ ] Let people post expenses to working groups
+- [ ] Let people donate
+- [x] Open Source (MIT License)
+- [x] Open Data (your own database)
