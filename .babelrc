@@ -1,8 +1,13 @@
 {
-    "presets": [
-      "next/babel"
-    ],
-    "plugins": [
-      "lodash"
+  "presets": [
+    [
+      "next/babel",
+      {
+        "preset-env": {
+          "modules": "auto"
+        }
+      }
     ]
-  }
+  ],
+  "plugins": ["add-module-exports", "lodash"]
+}
