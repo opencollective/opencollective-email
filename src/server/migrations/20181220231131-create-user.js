@@ -1,57 +1,63 @@
-"use strict";
+'use strict';
 module.exports = {
   up: (queryInterface, DataTypes) => {
-    return queryInterface.createTable("Users", {
+    return queryInterface.createTable('Users', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: DataTypes.INTEGER
+        type: DataTypes.INTEGER,
       },
       firstName: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
       },
       lastName: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
       },
       email: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+      },
+      image: {
+        type: DataTypes.STRING,
+      },
+      token: {
+        type: DataTypes.STRING,
       },
       gender: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
       },
       zipcode: {
-        type: DataTypes.STRING
-      },
-      preferredLanguage: {
-        type: DataTypes.STRING
-      },
-      languages: {
-        type: DataTypes.ARRAY(DataTypes.STRING)
+        type: DataTypes.STRING,
       },
       country: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
       },
       website: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
       },
       twitter: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
       },
       facebook: {
-        type: DataTypes.STRING
+        type: DataTypes.STRING,
+      },
+      preferredLanguage: {
+        type: DataTypes.STRING,
+      },
+      languages: {
+        type: DataTypes.ARRAY(DataTypes.STRING),
       },
       createdAt: {
         allowNull: false,
-        type: DataTypes.DATE
+        type: DataTypes.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: DataTypes.DATE
-      }
+        type: DataTypes.DATE,
+      },
     });
   },
   down: (queryInterface, DataTypes) => {
-    return queryInterface.dropTable("Users");
-  }
+    return queryInterface.dropTable('Users');
+  },
 };

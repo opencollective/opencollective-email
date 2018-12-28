@@ -1,5 +1,5 @@
 import { db, inspectSpy } from '../../lib/test';
-import { webhook } from '../webhook';
+import webhook from '../webhook';
 import { unfollow } from '../api';
 
 import sinon from 'sinon';
@@ -33,7 +33,7 @@ describe('webhook email', () => {
         await webhook(req);
         expect(sendEmailSpy.callCount).toEqual(1);
         expect(sendEmailSpy.firstCall.args[0]).toEqual(email1.sender.toLowerCase());
-        expect(sendEmailSpy.firstCall.args[1]).toMatch(/Please confirm/);
+        expect(sendEmailSpy.firstCall.args[1]).toMatch(/Action required/);
       });
       it("doesn't create any user account", async () => {
         const users = await models.User.findAll();

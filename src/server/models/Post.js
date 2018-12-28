@@ -22,6 +22,11 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: 'CASCADE',
         allowNull: true,
       },
+      version: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 1,
+      },
       GroupId: {
         type: DataTypes.INTEGER,
         references: {
@@ -32,10 +37,15 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: 'CASCADE',
         allowNull: false,
       },
-      version: {
+      UserId: {
         type: DataTypes.INTEGER,
+        references: {
+          model: 'Users',
+          key: 'id',
+        },
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
         allowNull: false,
-        defaultValue: 1,
       },
       ParentPostId: {
         type: DataTypes.INTEGER,
@@ -46,18 +56,6 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: 'SET NULL',
         onUpdate: 'CASCADE',
         allowNull: true,
-      },
-      uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
-      EmailThreadId: DataTypes.STRING,
-      UserId: {
-        type: DataTypes.INTEGER,
-        references: {
-          model: 'Users',
-          key: 'id',
-        },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-        allowNull: false,
       },
       slug: {
         type: DataTypes.STRING,
@@ -74,6 +72,8 @@ module.exports = (sequelize, DataTypes) => {
           }
         },
       },
+      uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
+      EmailThreadId: DataTypes.STRING,
       title: DataTypes.STRING,
       html: DataTypes.TEXT,
       text: DataTypes.TEXT,

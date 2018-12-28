@@ -24,12 +24,6 @@ module.exports = {
           allowNull: false,
         },
         uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
-        name: {
-          type: DataTypes.STRING,
-        },
-        description: {
-          type: DataTypes.STRING,
-        },
         UserId: {
           type: DataTypes.INTEGER,
           references: {
@@ -41,6 +35,12 @@ module.exports = {
           allowNull: false,
         },
         slug: {
+          type: DataTypes.STRING,
+        },
+        name: {
+          type: DataTypes.STRING,
+        },
+        description: {
           type: DataTypes.STRING,
         },
         image: {

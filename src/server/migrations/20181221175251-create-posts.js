@@ -9,16 +9,6 @@ module.exports = {
           primaryKey: true,
           type: DataTypes.INTEGER,
         },
-        GroupId: {
-          type: DataTypes.INTEGER,
-          references: {
-            model: 'Groups',
-            key: 'id',
-          },
-          onDelete: 'SET NULL',
-          onUpdate: 'CASCADE',
-          allowNull: false,
-        },
         PostId: {
           type: DataTypes.INTEGER,
           references: {
@@ -33,19 +23,15 @@ module.exports = {
           type: DataTypes.INTEGER,
           allowNull: false,
         },
-        ParentPostId: {
+        GroupId: {
           type: DataTypes.INTEGER,
           references: {
-            model: 'Posts',
+            model: 'Groups',
             key: 'id',
           },
           onDelete: 'SET NULL',
           onUpdate: 'CASCADE',
-          allowNull: true,
-        },
-        uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
-        EmailThreadId: {
-          type: DataTypes.STRING,
+          allowNull: false,
         },
         UserId: {
           type: DataTypes.INTEGER,
@@ -57,7 +43,21 @@ module.exports = {
           onUpdate: 'CASCADE',
           allowNull: false,
         },
+        ParentPostId: {
+          type: DataTypes.INTEGER,
+          references: {
+            model: 'Posts',
+            key: 'id',
+          },
+          onDelete: 'SET NULL',
+          onUpdate: 'CASCADE',
+          allowNull: true,
+        },
         slug: {
+          type: DataTypes.STRING,
+        },
+        uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
+        EmailThreadId: {
           type: DataTypes.STRING,
         },
         title: {

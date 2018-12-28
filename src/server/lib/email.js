@@ -7,6 +7,8 @@ import nodemailer from 'nodemailer';
 import config from 'config';
 import { extractInboxAndTagsFromEmailAddress, extractNamesAndEmailsFromString } from '../lib/utils';
 import { createJwt } from '../lib/auth';
+import path from 'path';
+import fs from 'fs';
 
 import * as ShortCode from '../templates/shortcode.email.js';
 import * as CreateUser from '../templates/createUser.email.js';
@@ -22,6 +24,8 @@ const templates = {
 };
 
 const libemail = {};
+
+console.log(`> Using mailgun account ${get(config, 'email.mailgun.user')}`);
 
 const generateCustomTemplate = (options, data) => {
   let unsubscribeSnippet = '';
@@ -61,7 +65,7 @@ libemail.generateUnsubscribeUrl = async function(email, where) {
     MemberId: member.id,
   };
   const token = createJwt('unfollow', tokenData, '7d');
-  return `${config.website}/api/unfollow?token=${token}`;
+  return `${config.collective.website}/api/unfollow?token=${token}`;
 };
 
 libemail.parseHeaders = function(email) {
@@ -106,8 +110,12 @@ libemail.sendTemplate = async function(template, data, recipients, options = {})
     if (get(data, 'unsubscribe.data')) {
       data.unsubscribe.url = await libemail.generateUnsubscribeUrl(emailAddr, data.unsubscribe.data);
     }
+    const previewText = templates[template].previewText && templates[template].previewText(data);
     const text = templates[template].text && templates[template].text(data);
-    const html = Oy.renderTemplate(templateComponent, { title: subject }, opts => generateCustomTemplate(opts, data));
+    const html = Oy.renderTemplate(templateComponent, { title: subject, previewText }, opts =>
+      generateCustomTemplate(opts, data),
+    );
+    options.template = template;
     return libemail.send(emailAddr, subject, text, html, options);
   };
 
@@ -124,7 +132,12 @@ libemail.send = async function(to, subject, text, html, options = {}) {
     return;
   }
   let transport;
-  if (get(config, 'email.mailgun.password')) {
+  if (process.env.MAILDEV) {
+    transport = {
+      ignoreTLS: true,
+      port: 1025,
+    };
+  } else if (get(config, 'email.mailgun.password')) {
     transport = {
       service: 'Mailgun',
       auth: {
@@ -132,13 +145,14 @@ libemail.send = async function(to, subject, text, html, options = {}) {
         pass: get(config, 'email.mailgun.password'),
       },
     };
-  } else if (process.env.MAILDEV) {
-    transport = {
-      ignoreTLS: true,
-      port: 1025,
-    };
   }
 
+  if (process.env.DEBUG && process.env.DEBUG.match(/email/)) {
+    const recipientSlug = to.substr(0, to.indexOf('@'));
+    const filepath = path.resolve(`/tmp/${options.template}.${recipientSlug}.html`);
+    fs.writeFileSync(filepath, html);
+    debug('preview: ', filepath);
+  }
   if (!transport) {
     console.warn('lib/email: please configure mailgun or run a local test mail server (see README).');
     return;

@@ -5,12 +5,25 @@ import { get } from 'lodash';
 
 const { Table, TBody, TR, TD } = Oy;
 
+const styles = {
+  body: {
+    fontFamily: 'Helvetica Neue',
+    lineHeight: 1.3,
+  },
+  footer: {
+    fontFamily: 'Helvetica Neue',
+    fontSize: '12px',
+    textAlign: 'center',
+    paddingTop: '3rem',
+  },
+};
+
 export default ({ preview, children, maxWidth }) => {
   return (
     <Table width={maxWidth}>
       <TBody>
         <TR>
-          <TD>
+          <TD style={styles.body}>
             <span
               style={{
                 display: 'none !important',
@@ -27,7 +40,7 @@ export default ({ preview, children, maxWidth }) => {
           </TD>
         </TR>
         <TR>
-          <TD>{get(config, 'collective.name')} - Open Collective</TD>
+          <TD style={styles.footer}>{get(config, 'collective.name')} - Open Collective</TD>
         </TR>
       </TBody>
     </Table>

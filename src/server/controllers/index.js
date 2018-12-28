@@ -1,5 +1,5 @@
 import * as api from './api';
-import * as webhook from './webhook';
+import webhook from './webhook';
 
 export default {
   api,

@@ -15,11 +15,14 @@ async function handleFirstTimeUser(email) {
 
   const tokenData = { messageId, mailServer };
   const token = createJwt('emailConfirmation', tokenData, '1h');
-  const data = { confirmationUrl: `${config.website}/api/publishEmail?groupSlug=${groupSlug}&token=${token}` };
-  await libemail.sendTemplate('createUser', data, [email.sender]);
+  const data = {
+    groupSlug,
+    confirmationUrl: `${config.collective.website}/api/publishEmail?groupSlug=${groupSlug}&token=${token}`,
+  };
+  return await libemail.sendTemplate('createUser', data, [email.sender]);
 }
 
-export async function webhook(req, res, next) {
+export default async function webhook(req, res, next) {
   if (!req.body.recipient) {
     throw new Error('Invalid webhook payload: missing "recipient"');
   }

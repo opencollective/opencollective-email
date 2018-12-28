@@ -12,6 +12,12 @@ ROOT="$( dirname "$(readlink "$0/..")" )"
 NODEBIN=${ROOT}/node_modules/.bin
 PATH=${PATH}:$NODEBIN
 
+if [ -f .env ]; then
+  echo "- loading .env"
+  export $(egrep -v '^#' .env | xargs)
+  echo $PD_DATABASE
+fi
+
 # Environment
 SQLENV=${SEQUELIZE_ENV:=${NODE_ENV:=development}}
 
