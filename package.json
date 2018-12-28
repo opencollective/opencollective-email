@@ -7,6 +7,7 @@
     "test": "sh ./scripts/test.sh",
     "dev": "nodemon --exec babel-node -- src/server/index.js",
     "db:reset": "sh ./scripts/resetdb.sh",
+    "db:migrate": "sh ./scripts/sequelize.sh db:migrate",
     "db:migrate:dev": "sh ./scripts/sequelize.sh -l db:migrate",
     "db:migrate:dev:undo": "sh ./scripts/sequelize.sh -l db:migrate:undo",
     "build": "npm run build:server && npm run build:next",
