@@ -3,8 +3,8 @@ set -e
 PG_DATABASE="opencollective-email"
 
 # Only run migrations automatically on staging and production
-if [ "$SEQUELIZE_ENV" = "staging" ] || [ "$SEQUELIZE_ENV" = "production" ]; then
-  echo "- running db:migrate on $SEQUELIZE_ENV environment"
+if [ "$NODE_ENV" = "staging" ] || [ "$NODE_ENV" = "production" ]; then
+  echo "- running db:migrate on $NODE_ENV environment"
   npm run db:migrate
   exit $?; # exit with return code of previous command
 fi
