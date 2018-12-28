@@ -15,9 +15,23 @@
     "dialect": "postgres"
   },
   "staging": {
-    "use_env_variable": "PG_URL"
+    "use_env_variable": "PG_URL",
+    "dialect": "postgres",
+    "ssl": true,
+    "dialectOptions": {
+      "ssl": {
+        "require": true
+      }
+    }
   },
   "production": {
-    "use_env_variable": "PG_URL"
+    "use_env_variable": "PG_URL",
+    "dialect": "postgres",
+    "ssl": true,
+    "dialectOptions": {
+      "ssl": {
+        "require": true
+      }
+    }
   }
 }
