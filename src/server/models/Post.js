@@ -79,6 +79,7 @@ module.exports = (sequelize, DataTypes) => {
       text: DataTypes.TEXT,
     },
     {
+      paranoid: true,
       hooks: {
         beforeValidate: post => {
           post.slug = post.slug || slugify(post.title);

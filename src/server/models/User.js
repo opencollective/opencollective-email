@@ -50,6 +50,7 @@ module.exports = (sequelize, DataTypes) => {
       languages: DataTypes.ARRAY(DataTypes.STRING),
     },
     {
+      paranoid: true,
       hooks: {
         beforeValidate: user => {
           if (user.name && !user.firstName) {

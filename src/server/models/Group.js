@@ -59,6 +59,7 @@ module.exports = (sequelize, DataTypes) => {
       settings: DataTypes.JSON,
     },
     {
+      paranoid: true,
       hooks: {
         beforeValidate: group => {
           group.slug = group.slug || slugify(group.name);

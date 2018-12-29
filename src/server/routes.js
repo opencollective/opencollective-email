@@ -17,6 +17,7 @@ export default server => {
   server.post('/webhook', controllers.webhook);
   server.get('/api/publishEmail', controllers.api.publishEmail);
   server.get('/api/unfollow', controllers.api.unfollow);
+  server.get('/api/reset', controllers.api.reset);
 
   server.get('/favicon.*', maxAge(300000), (req, res) => {
     return res.sendFile(path.join(__dirname, '../static/images/favicon.png'));

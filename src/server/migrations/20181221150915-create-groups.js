@@ -60,7 +60,10 @@ module.exports = {
           allowNull: false,
           type: DataTypes.DATE,
         },
-      })
+      },
+      {
+        paranoid: true,
+      }
       .then(() =>
         queryInterface.addIndex('Groups', ['slug', 'version'], {
           indicesType: 'UNIQUE',

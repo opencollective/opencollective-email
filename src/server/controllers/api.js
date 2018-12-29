@@ -4,6 +4,7 @@ import { get } from 'lodash';
 import request from 'request-promise';
 import { extractNamesAndEmailsFromString } from '../lib/utils';
 import models from '../models';
+import { db } from '../lib/test';
 
 export const retrieveEmail = async ({ mailServer, messageId }) => {
   const requestOptions = {
@@ -67,4 +68,12 @@ export async function unfollow(req, res, next) {
   }
   await member.destroy();
   return res.send(msg);
+}
+
+export async function reset(req, res) {
+  if (!req.query.secret || req.query.secret !== process.env.SECRET) {
+    return res.send('invalid secret');
+  }
+  await db.reset();
+  return res.send('db reset');
 }
