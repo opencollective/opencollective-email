@@ -26,11 +26,14 @@ describe('webhook email', () => {
 
   describe('sending first email in a thread', async () => {
     describe('sender is a new user', () => {
-      const req = {
-        body: email1,
-      };
+      beforeAll(async () => {
+        const req = {
+          body: email1,
+        };
+        const res = { send: () => {} };
+        await webhook(req, res);
+      });
       it('send an email confirmation if first time user', async () => {
-        await webhook(req);
         expect(sendEmailSpy.callCount).toEqual(1);
         expect(sendEmailSpy.firstCall.args[0]).toEqual(email1.sender.toLowerCase());
         expect(sendEmailSpy.firstCall.args[1]).toMatch(/Action required/);
@@ -49,54 +52,75 @@ describe('webhook email', () => {
       beforeAll(async () => {
         sendEmailSpy.resetHistory();
         await models.User.create({ email: 'firstsender@gmail.com' });
-        const req = { body: email1 };
-        const res = { send: () => {} };
-        await webhook(req, res);
       });
 
-      it('creates a post', async () => {
-        const post = await models.Post.findOne();
-        expect(post.EmailThreadId).toEqual(email1['Message-Id']);
-        expect(post.html).toEqual(email1['stripped-html']);
-        expect(post.text).toEqual(email1['stripped-text']);
-      });
-      it('creates users for all persons cced', async () => {
-        const users = await models.User.findAll({ order: [['email', 'ASC']] });
-        expect(users.length).toEqual(2);
-        expect(users.map(u => u.email)).toContain('firstrecipient@gmail.com');
-      });
-
-      it('creates the group and add creator and all persons cced as ADMIN and FOLLOWER of the group and the post', async () => {
-        const group = await models.Group.findOne();
-        const post = await models.Post.findOne();
-        const members = await models.Member.findAll({ where: { PostId: post.id, role: 'FOLLOWER' } });
-        expect(members.length).toEqual(2);
-        const admins = await models.Member.findAll({ where: { GroupId: group.id, role: 'ADMIN' } });
-        expect(admins.length).toEqual(2);
-      });
-
-      it('sends the email to all followers of the group', async () => {
-        expect(sendEmailSpy.firstCall.args[0]).toEqual(email1.sender);
-        expect(sendEmailSpy.secondCall.args[0]).toEqual('firstrecipient@gmail.com');
-        expect(sendEmailSpy.secondCall.args[2]).toMatch('Click here to stop receiving new emails sent to testgroup@');
-        expect(sendEmailSpy.callCount).toEqual(2);
-      });
-      it('unsubscribes from the group', async () => {
-        // Test unsubscribe from group
-        const matches = sendEmailSpy.secondCall.args[2].match(/\/api\/unfollow\?token=([^\s]+)/);
-        const req = { query: { token: matches[1] } };
-        const res = {
-          send: msg => {
-            expect(msg).toEqual('You have successfully unsubscribed from new messages sent to this group');
-          },
-        };
-        await unfollow(req, res);
-        const group = await models.Group.findOne();
-        const user = await models.User.findByEmail('firstrecipient@gmail.com');
-        const member = await models.Member.findOne({
-          where: { role: 'FOLLOWER', UserId: user.id, GroupId: group.GroupId },
+      describe('email is empty', () => {
+        beforeAll(async () => {
+          sendEmailSpy.resetHistory();
+          const req = { body: { ...email1, 'stripped-text': '' } };
+          const res = { send: () => {} };
+          await webhook(req, res);
         });
-        expect(member).toBeNull();
+        it("doesn't create a post", async () => {
+          inspectSpy(sendEmailSpy, 3);
+          const post = await models.Post.findOne();
+          expect(post).toBeNull();
+          expect(sendEmailSpy.callCount).toEqual(1);
+        });
+      });
+
+      describe('email is not empty', () => {
+        beforeAll(async () => {
+          sendEmailSpy.resetHistory();
+          const req = { body: email1 };
+          const res = { send: () => {} };
+          await webhook(req, res);
+        });
+
+        it('creates a post', async () => {
+          const post = await models.Post.findOne();
+          expect(post.EmailThreadId).toEqual(email1['Message-Id']);
+          expect(post.html).toEqual(email1['stripped-html']);
+          expect(post.text).toEqual(email1['stripped-text']);
+        });
+        it('creates users for all persons cced', async () => {
+          const users = await models.User.findAll({ order: [['email', 'ASC']] });
+          expect(users.length).toEqual(2);
+          expect(users.map(u => u.email)).toContain('firstrecipient@gmail.com');
+        });
+
+        it('creates the group and add creator and all persons cced as ADMIN and FOLLOWER of the group and the post', async () => {
+          const group = await models.Group.findOne();
+          const post = await models.Post.findOne();
+          const members = await models.Member.findAll({ where: { PostId: post.id, role: 'FOLLOWER' } });
+          expect(members.length).toEqual(2);
+          const admins = await models.Member.findAll({ where: { GroupId: group.id, role: 'ADMIN' } });
+          expect(admins.length).toEqual(2);
+        });
+
+        it('sends the email to all followers of the group', async () => {
+          expect(sendEmailSpy.firstCall.args[0]).toEqual(email1.sender);
+          expect(sendEmailSpy.secondCall.args[0]).toEqual('firstrecipient@gmail.com');
+          expect(sendEmailSpy.secondCall.args[2]).toMatch('Click here to stop receiving new emails sent to testgroup@');
+          expect(sendEmailSpy.callCount).toEqual(2);
+        });
+        it('unsubscribes from the group', async () => {
+          // Test unsubscribe from group
+          const matches = sendEmailSpy.secondCall.args[2].match(/\/api\/unfollow\?token=([^\s]+)/);
+          const req = { query: { token: matches[1] } };
+          const res = {
+            send: msg => {
+              expect(msg).toEqual('You have successfully unsubscribed from new messages sent to this group');
+            },
+          };
+          await unfollow(req, res);
+          const group = await models.Group.findOne();
+          const user = await models.User.findByEmail('firstrecipient@gmail.com');
+          const member = await models.Member.findOne({
+            where: { role: 'FOLLOWER', UserId: user.id, GroupId: group.GroupId },
+          });
+          expect(member).toBeNull();
+        });
       });
     });
   });

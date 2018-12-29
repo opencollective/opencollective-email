@@ -134,11 +134,22 @@ module.exports = (sequelize, DataTypes) => {
       group = await user.createGroup({ slug: groupSlug, name: groupSlug, tags });
       await group.addMembers(recipients, { role: 'ADMIN' });
       await group.addFollowers(recipients);
+      const followers = await group.getFollowers();
+      await libemail.sendTemplate('groupCreated', { group, followers }, [userData.email]);
     } else {
-      // If the group exists and if the email is empty, we add the sender and recipients as followers of the group
+      // If the group exists and if the email is empty,
       if (email.subject.trim() === '' || email['stripped-text'].trim() === '') {
+        // we add the sender and recipients as followers of the group
         await group.addFollowers([...recipients, userData]);
+        // we send an update about the group info
+        const followers = await group.getFollowers();
+        await libemail.sendTemplate('groupInfo', { group, followers }, [userData.email]);
       }
+    }
+
+    // if the content of the email is empty, we don't create any post
+    if (email['stripped-text'].trim() === '') {
+      return;
     }
 
     let EmailThreadId, parentPost;

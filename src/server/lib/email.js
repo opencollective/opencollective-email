@@ -10,17 +10,21 @@ import { createJwt } from '../lib/auth';
 import path from 'path';
 import fs from 'fs';
 
-import * as ShortCode from '../templates/shortcode.email.js';
-import * as CreateUser from '../templates/createUser.email.js';
-import * as ThreadCreated from '../templates/threadCreated.email.js';
-import * as Post from '../templates/post.email.js';
+import * as shortcode from '../templates/shortcode.email.js';
+import * as createUser from '../templates/createUser.email.js';
+import * as groupCreated from '../templates/groupCreated.email.js';
+import * as groupInfo from '../templates/groupInfo.email.js';
+import * as threadCreated from '../templates/threadCreated.email.js';
+import * as post from '../templates/post.email.js';
 import models from '../models';
 
 const templates = {
-  shortcode: ShortCode,
-  createUser: CreateUser,
-  threadCreated: ThreadCreated,
-  post: Post,
+  shortcode,
+  createUser,
+  threadCreated,
+  post,
+  groupCreated,
+  groupInfo,
 };
 
 const libemail = {};
@@ -28,7 +32,8 @@ const libemail = {};
 console.log(`> Using mailgun account ${get(config, 'email.mailgun.user')}`);
 
 const generateCustomTemplate = (options, data) => {
-  let unsubscribeSnippet = '';
+  let unsubscribeSnippet = '',
+    previewText = '';
   if (data.unsubscribe) {
     unsubscribeSnippet = `
       <div class="footer" style="margin-top: 2rem; font-size: 10px;">
@@ -37,6 +42,11 @@ const generateCustomTemplate = (options, data) => {
         </a>
       </div>`;
   }
+  if (options.previewText) {
+    previewText = `<span style="display:none;color:#FFFFFF;margin:0;padding:0;font-size:1px;line-height:1px;">
+      ${options.previewText}
+    </span>`;
+  }
   return `
     <!doctype html>
     <html>
@@ -44,9 +54,7 @@ const generateCustomTemplate = (options, data) => {
         <title>${options.title}</title>
       </head>
       <body>
-      <span style="display:none !important,color:#FFFFFF,margin:0,padding:0,font-size:1px,line-height:1px">
-        ${options.previewText}
-      </span>
+      ${previewText}
       ${options.bodyContent}
       ${unsubscribeSnippet}
       </body>
@@ -102,10 +110,12 @@ libemail.sendTemplate = async function(template, data, recipients, options = {})
     uniqueRecipients,
     subject,
     'using template',
-    template,
-    'with data',
-    data.dataValues ? data.dataValues : data,
+    template
   );
+  if (process.env.DEBUG && process.env.DEBUG.match(/data/)) {
+    debug('with data', data);
+  }
+
   const templateComponent = React.createElement(templates[template].body, data);
 
   const sendEmail = async function(emailAddr) {

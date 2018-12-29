@@ -12,6 +12,13 @@ module.exports = (sequelize, DataTypes) => {
       lastName: DataTypes.STRING,
       name: {
         type: DataTypes.VIRTUAL,
+        get() {
+          if (this.getDataValue('name')) return this.getDataValue('name');
+          const nameParts = [];
+          if (this.getDataValue('firstName')) nameParts.push(this.getDataValue('firstName'));
+          if (this.getDataValue('lastName')) nameParts.push(this.getDataValue('lastName'));
+          return nameParts.length > 0 ? nameParts.join(' ') : 'anonymous';
+        },
       },
       email: {
         type: DataTypes.STRING,

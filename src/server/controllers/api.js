@@ -40,7 +40,7 @@ export async function publishEmail(req, res, next) {
   }
   const email = await retrieveEmail(token);
   const post = await models.Post.createFromEmail(email);
-  return res.location(`/${groupSlug}/threads/${post.id}`);
+  return res.redirect(`/${groupSlug}/threads/${post.id}`);
 }
 
 export async function unfollow(req, res, next) {
