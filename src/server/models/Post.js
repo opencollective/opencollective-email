@@ -3,7 +3,7 @@ import config from 'config';
 import slugify from 'limax';
 import { omit, get } from 'lodash';
 import libemail from '../lib/email';
-import { extractNamesAndEmailsFromString } from '../lib/utils';
+import { extractNamesAndEmailsFromString, isEmpty } from '../lib/utils';
 
 module.exports = (sequelize, DataTypes) => {
   const { models } = sequelize;
@@ -139,7 +139,7 @@ module.exports = (sequelize, DataTypes) => {
       await libemail.sendTemplate('groupCreated', { group, followers }, [userData.email]);
     } else {
       // If the group exists and if the email is empty,
-      if ((get(email, 'subject') || '').trim() === '' || (get(email, 'stripped-text') || '').trim() === '') {
+      if (isEmpty(email.subject) || isEmpty(email['stripped-text'])) {
         // we add the sender and recipients as followers of the group
         await group.addFollowers([...recipients, userData]);
         // we send an update about the group info
@@ -149,7 +149,7 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     // if the content of the email is empty, we don't create any post
-    if ((get(email, 'stripped-text') || '').trim() === '') {
+    if (isEmpty(email['stripped-text'])) {
       return;
     }
 

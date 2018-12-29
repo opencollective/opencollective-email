@@ -16,6 +16,10 @@ export const extractEmailsFromString = str => {
   }
 };
 
+export const isEmpty = str => {
+  return (str || '').trim() === '';
+};
+
 export const extractNamesAndEmailsFromString = str => {
   const recipients = str.split(',').map(recipient => {
     const matches = recipient.match(/([^<]+)<([^@]+@[^\.]+\.[^>]+)>/);
