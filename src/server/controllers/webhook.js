@@ -4,6 +4,8 @@ import { createJwt } from '../lib/auth';
 import models from '../models';
 import config from 'config';
 import { get } from 'lodash';
+import debugLib from 'debug';
+const debug = debugLib('webhook');
 
 async function handleFirstTimeUser(groupSlug, email) {
   if (!email['message-url']) {
@@ -26,6 +28,7 @@ export default async function webhook(req, res, next) {
   if (!req.body.recipient) {
     throw new Error('Invalid webhook payload: missing "recipient"');
   }
+  debug('receiving email from:', req.body.sender, 'to:', req.body.recipient, 'subject:', req.body.subject);
 
   const { groupSlug } = parseEmailAddress(req.body.recipient);
   const groupEmail = `${groupSlug}@${get(config, 'collective.domain')}`.toLowerCase();
@@ -40,6 +43,7 @@ export default async function webhook(req, res, next) {
   // If no, we send a confirmation email before creating / publishing an account
   // the user will have to click the link provided in an email confirmation to publish their email to the group
   if (!user) {
+    debug('user not found');
     await handleFirstTimeUser(groupSlug, req.body);
     return res.send('ok');
   }

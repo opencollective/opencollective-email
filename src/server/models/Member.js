@@ -41,7 +41,9 @@ module.exports = (sequelize, DataTypes) => {
       role: DataTypes.STRING,
       description: DataTypes.STRING,
     },
-    {},
+    {
+      paranoid: true,
+    },
   );
   Member.findOrCreate = async memberData => {
     const membership = await Member.findOne({ where: { ...memberData } });

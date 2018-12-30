@@ -178,7 +178,7 @@ module.exports = (sequelize, DataTypes) => {
     const headers = {
       'Message-Id': `${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(config, 'collective.domain')}`,
       References: `${groupSlug}/posts/${thread.PostId}@${get(config, 'collective.domain')}`,
-      'Reply-To': `${group.name} <${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(
+      'Reply-To': `${groupEmail} <${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(
         config,
         'collective.domain',
       )}>`,
