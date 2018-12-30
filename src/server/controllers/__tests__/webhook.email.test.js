@@ -107,6 +107,7 @@ describe('webhook email', () => {
           expect(sendEmailSpy.secondCall.args[4].cc).toEqual('firstrecipient@gmail.com');
           expect(sendEmailSpy.secondCall.args[2]).toMatch('Click here to stop receiving new emails sent to testgroup@');
         });
+
         it('unsubscribes from the group', async () => {
           // Test unsubscribe from group
           const matches = sendEmailSpy.secondCall.args[2].match(/\/api\/unfollow\?token=([^\s]+)/);
