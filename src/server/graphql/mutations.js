@@ -24,7 +24,6 @@ const mutations = {
       group: { type: new GraphQLNonNull(GroupInputType) },
     },
     resolve(_, args, req) {
-      console.log('>>> createGroup', args.group);
       return models.Group.create(args.group);
     },
   },

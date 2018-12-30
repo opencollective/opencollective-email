@@ -96,43 +96,58 @@ libemail.parseHeaders = function(email) {
  * Generate template with data and send html email to recipients
  * @pre: recipients: array(email)
  */
-libemail.sendTemplate = async function(template, data, recipients, options = {}) {
+libemail.sendTemplate = async function(template, data, to, options = {}) {
   if (!templates[template]) {
     throw new Error(`Template ${template} not found`);
   }
-  let uniqueRecipients = uniq(recipients.map(r => r.trim().toLowerCase()));
+  if ((options.exclude || []).includes(to)) {
+    throw new Error(`Recipient is in the exclude list (${to})`);
+  }
+
+  let cc = uniq((options.cc || []).map(r => r.trim().toLowerCase()));
   if (options.exclude) {
-    uniqueRecipients = uniqueRecipients.filter(email => !options.exclude.includes(email));
+    cc = cc.filter(email => !options.exclude.includes(email));
   }
   const subject = templates[template].subject(data);
-  debug(
-    'Sending email to',
-    uniqueRecipients,
-    subject,
-    'using template',
-    template
-  );
+  debug('Sending', template, 'email to', to, 'cc', cc, subject);
   if (process.env.DEBUG && process.env.DEBUG.match(/data/)) {
     debug('with data', data);
   }
 
   const templateComponent = React.createElement(templates[template].body, data);
 
-  const sendEmail = async function(emailAddr) {
+  const prepareEmailForRecipient = async function(recipientEmailAddr) {
     // we generate a unique unsubscribe url per recipient
     if (get(data, 'unsubscribe.data')) {
-      data.unsubscribe.url = await libemail.generateUnsubscribeUrl(emailAddr, data.unsubscribe.data);
+      data.unsubscribe.url = await libemail.generateUnsubscribeUrl(recipientEmailAddr, data.unsubscribe.data);
     }
     const previewText = templates[template].previewText && templates[template].previewText(data);
     const text = templates[template].text && templates[template].text(data);
     const html = Oy.renderTemplate(templateComponent, { title: subject, previewText }, opts =>
       generateCustomTemplate(opts, data),
     );
-    options.template = template;
-    return libemail.send(emailAddr, subject, text, html, options);
+    return { text, html };
   };
 
-  return await Promise.all(uniqueRecipients.map(sendEmail));
+  const sendEmailWithIndividualUnsubscribeUrl = async function(to, cc, email) {
+    const { text, html } = await prepareEmailForRecipient(email);
+    const emailOpts = {
+      ...options,
+      template,
+      cc,
+    };
+    return libemail.send(to, subject, text, html, emailOpts);
+  };
+
+  // note: the goal here is to send an email to the group email and sending in cc to each recipient
+  // with each their own unsubscribe one click link despite the fact that we are sending to the group email
+  if (cc.length > 0) {
+    return await Promise.all(
+      cc.map(async ccEmail => await sendEmailWithIndividualUnsubscribeUrl(to, ccEmail, ccEmail)),
+    );
+  } else {
+    return await sendEmailWithIndividualUnsubscribeUrl(to, null, to);
+  }
 };
 
 libemail.send = async function(to, subject, text, html, options = {}) {

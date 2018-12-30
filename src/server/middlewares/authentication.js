@@ -78,7 +78,6 @@ export function authenticateUserByJwtNoExpiry() {
  */
 export const _authenticateUserByJwt = async (req, res, next) => {
   if (!req.jwtPayload) return next();
-  console.log('>>> jwt payload', req.jwtPayload);
   const userid = req.jwtPayload.id;
   const user = await User.findById(userid);
   if (!user) throw errors.Unauthorized(`User id ${userid} not found`);

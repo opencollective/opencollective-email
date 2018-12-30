@@ -88,7 +88,7 @@ module.exports = (sequelize, DataTypes) => {
         {
           shortcode: user.token,
         },
-        [user.email],
+        user.email,
       );
       return user;
     }

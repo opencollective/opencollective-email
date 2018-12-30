@@ -3,6 +3,7 @@ import { extractInboxAndTagsFromEmailAddress } from '../lib/utils';
 import { createJwt } from '../lib/auth';
 import models from '../models';
 import config from 'config';
+import { get } from 'lodash';
 
 async function handleFirstTimeUser(groupSlug, email) {
   if (!email['message-url']) {
@@ -18,7 +19,7 @@ async function handleFirstTimeUser(groupSlug, email) {
     groupSlug,
     confirmationUrl: `${config.collective.website}/api/publishEmail?groupSlug=${groupSlug}&token=${token}`,
   };
-  return await libemail.sendTemplate('createUser', data, [email.sender]);
+  return await libemail.sendTemplate('createUser', data, email.sender);
 }
 
 export default async function webhook(req, res, next) {
@@ -26,10 +27,15 @@ export default async function webhook(req, res, next) {
     throw new Error('Invalid webhook payload: missing "recipient"');
   }
 
-  // Look if sender already has an account
-  const users = await models.User.findAll();
-  const user = await models.User.findByEmail(req.body.sender);
   const { inbox: groupSlug } = extractInboxAndTagsFromEmailAddress(req.body.recipient);
+  const groupEmail = `${groupSlug}@${get(config, 'collective.domain')}`;
+  if (req.body.sender === groupEmail) {
+    console.info('Receiving email sent from the group to the group, discarding');
+    return res.send('ok');
+  }
+
+  // Look if sender already has an account
+  const user = await models.User.findByEmail(req.body.sender);
 
   // If no, we send a confirmation email before creating / publishing an account
   // the user will have to click the link provided in an email confirmation to publish their email to the group

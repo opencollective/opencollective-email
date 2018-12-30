@@ -125,6 +125,7 @@ module.exports = (sequelize, DataTypes) => {
   Post.createFromEmail = async email => {
     const { groupSlug, tags, recipients } = libemail.parseHeaders(email);
 
+    const groupEmail = `${groupSlug}@${get(config, 'collective.domain')}`;
     const userData = extractNamesAndEmailsFromString(email.From)[0];
     const user = await models.User.findOrCreate(userData);
 
@@ -136,7 +137,7 @@ module.exports = (sequelize, DataTypes) => {
       await group.addMembers(recipients, { role: 'ADMIN' });
       await group.addFollowers(recipients);
       const followers = await group.getFollowers();
-      await libemail.sendTemplate('groupCreated', { group, followers }, [userData.email]);
+      await libemail.sendTemplate('groupCreated', { group, followers }, userData.email);
     } else {
       // If the group exists and if the email is empty,
       if (isEmpty(email.subject) || isEmpty(email['stripped-text'])) {
@@ -144,7 +145,7 @@ module.exports = (sequelize, DataTypes) => {
         await group.addFollowers([...recipients, userData]);
         // we send an update about the group info
         const followers = await group.getFollowers();
-        await libemail.sendTemplate('groupInfo', { group, followers }, [userData.email]);
+        await libemail.sendTemplate('groupInfo', { group, followers }, userData.email);
       }
     }
 
@@ -176,9 +177,9 @@ module.exports = (sequelize, DataTypes) => {
     await thread.addFollowers(recipients);
 
     const headers = {
-      'Message-Id': `${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(config, 'email.domain')}`,
-      References: `${groupSlug}/posts/${thread.PostId}@${get(config, 'email.domain')}`,
-      'Reply-To': `${group.name} <${groupSlug}+post:${post.PostId}@${get(config, 'email.domain')}>`,
+      'Message-Id': `${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(config, 'collective.domain')}`,
+      References: `${groupSlug}/posts/${thread.PostId}@${get(config, 'collective.domain')}`,
+      'Reply-To': `${group.name} <${groupSlug}+post:${post.PostId}@${get(config, 'collective.domain')}>`,
     };
 
     let data;
@@ -186,16 +187,17 @@ module.exports = (sequelize, DataTypes) => {
     if (!parentPost) {
       const followers = await group.getFollowers();
       data = { groupSlug, followersCount: followers.length };
-      await libemail.sendTemplate('threadCreated', data, [user.email]);
+      await libemail.sendTemplate('threadCreated', data, user.email);
       // We send the new post to followers of the group + the recipients
       const unsubscribeLabel = `Click here to stop receiving new emails sent to ${group.slug}@${get(
         config,
-        'email.domain',
+        'collective.domain',
       )}`;
       data = { post: post.dataValues, unsubscribe: { label: unsubscribeLabel, data: { GroupId: group.id } } };
-      await libemail.sendTemplate('post', data, [...followers.map(u => u.email), ...recipients.map(r => r.email)], {
+      await libemail.sendTemplate('post', data, groupEmail, {
         exclude: [user.email],
-        from: `${userData.name} <${groupSlug}@${get(config, 'email.domain')}>`,
+        from: `${userData.name} <${groupSlug}@${get(config, 'collective.domain')}>`,
+        cc: [...followers.map(u => u.email), ...recipients.map(r => r.email)],
         headers,
       });
     } else {
@@ -203,9 +205,10 @@ module.exports = (sequelize, DataTypes) => {
       const followers = await thread.getFollowers();
       const unsubscribeLabel = `Click here to stop receiving new replies to this thread`;
       data = { post: post.dataValues, unsubscribe: { label: unsubscribeLabel, data: { PostId: thread.PostId } } };
-      await libemail.sendTemplate('post', data, [...followers.map(u => u.email), ...recipients.map(r => r.email)], {
+      await libemail.sendTemplate('post', data, groupEmail, {
         exclude: [user.email],
-        from: `${userData.name} <${groupSlug}@${get(config, 'email.domain')}>`,
+        from: `${userData.name} <${groupSlug}@${get(config, 'collective.domain')}>`,
+        cc: [...followers.map(u => u.email), ...recipients.map(r => r.email)],
         headers,
       });
     }

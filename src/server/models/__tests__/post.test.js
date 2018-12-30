@@ -19,9 +19,9 @@ describe('post model', () => {
     const newVersion = await post.edit({ title: 'new title' });
     expect(newVersion.PostId).toEqual(1);
     expect(newVersion.version).toEqual(2);
-    const versions = await models.Post.findAll({ where: { slug: 'test' } });
+    const versions = await models.Post.findAll({ where: { PostId: post.PostId } });
     expect(versions.length).toEqual(2);
-    const latestVersion = await models.Post.findBySlug('test');
+    const latestVersion = await models.Post.findBySlug(`test-${post.PostId}`);
     expect(latestVersion.title).toEqual('new title');
   });
 

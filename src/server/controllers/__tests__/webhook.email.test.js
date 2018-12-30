@@ -61,8 +61,9 @@ describe('webhook email', () => {
           const res = { send: () => {} };
           await webhook(req, res);
         });
-        it("doesn't create a post", async () => {
-          inspectSpy(sendEmailSpy, 3);
+        it("creates a group but doesn't create a post", async () => {
+          const groupsCount = await models.Group.count();
+          expect(groupsCount).toEqual(1);
           const post = await models.Post.findOne();
           expect(post).toBeNull();
           expect(sendEmailSpy.callCount).toEqual(1);
@@ -92,17 +93,19 @@ describe('webhook email', () => {
         it('creates the group and add creator and all persons cced as ADMIN and FOLLOWER of the group and the post', async () => {
           const group = await models.Group.findOne();
           const post = await models.Post.findOne();
-          const members = await models.Member.findAll({ where: { PostId: post.id, role: 'FOLLOWER' } });
-          expect(members.length).toEqual(2);
+          const postFollowers = await models.Member.findAll({ where: { PostId: post.PostId, role: 'FOLLOWER' } });
+          expect(postFollowers.length).toEqual(2);
+          const groupFollowers = await models.Member.findAll({ where: { GroupId: group.GroupId, role: 'FOLLOWER' } });
+          expect(groupFollowers.length).toEqual(2);
           const admins = await models.Member.findAll({ where: { GroupId: group.id, role: 'ADMIN' } });
           expect(admins.length).toEqual(2);
         });
 
         it('sends the email to all followers of the group', async () => {
-          expect(sendEmailSpy.firstCall.args[0]).toEqual(email1.sender);
-          expect(sendEmailSpy.secondCall.args[0]).toEqual('firstrecipient@gmail.com');
-          expect(sendEmailSpy.secondCall.args[2]).toMatch('Click here to stop receiving new emails sent to testgroup@');
           expect(sendEmailSpy.callCount).toEqual(2);
+          expect(sendEmailSpy.secondCall.args[0]).toEqual('testgroup@citizenspring.be');
+          expect(sendEmailSpy.secondCall.args[4].cc).toEqual('firstrecipient@gmail.com');
+          expect(sendEmailSpy.secondCall.args[2]).toMatch('Click here to stop receiving new emails sent to testgroup@');
         });
         it('unsubscribes from the group', async () => {
           // Test unsubscribe from group
@@ -146,7 +149,8 @@ describe('webhook email', () => {
       expect(posts[1].ParentPostId).toEqual(posts[0].PostId);
       expect(posts[1].text).toMatch(/Replying to all/);
       expect(sendEmailSpy.callCount).toEqual(1);
-      expect(sendEmailSpy.firstCall.args[0]).toEqual(email1.sender);
+      expect(sendEmailSpy.firstCall.args[0]).toEqual('testgroup@citizenspring.be');
+      expect(sendEmailSpy.firstCall.args[4].cc).toEqual(email1.sender);
       expect(sendEmailSpy.firstCall.args[1]).toEqual(email2.subject);
     });
 
@@ -160,8 +164,8 @@ describe('webhook email', () => {
       req.body = email2;
       await webhook(req, res);
       expect(sendEmailSpy.callCount).toEqual(2);
-      expect([sendEmailSpy.args[0][0], sendEmailSpy.args[1][0]]).toContain(email1.sender);
-      expect([sendEmailSpy.args[0][0], sendEmailSpy.args[1][0]]).toContain('threadfollower@gmail.com');
+      expect([sendEmailSpy.args[0][4].cc, sendEmailSpy.args[1][4].cc]).toContain(email1.sender);
+      expect([sendEmailSpy.args[0][4].cc, sendEmailSpy.args[1][4].cc]).toContain('threadfollower@gmail.com');
       expect(sendEmailSpy.firstCall.args[2]).toMatch('Click here to stop receiving new replies to this thread');
       expect(sendEmailSpy.secondCall.args[2]).toMatch('Click here to stop receiving new replies to this thread');
 
@@ -172,7 +176,7 @@ describe('webhook email', () => {
         expect(msg).toEqual('You have successfully unsubscribed from future updates to this thread');
       };
       await unfollow(req, res);
-      const user = await models.User.findByEmail(sendEmailSpy.secondCall.args[0]);
+      const user = await models.User.findByEmail(sendEmailSpy.secondCall.args[4].cc);
       const member = await models.Member.findOne({ where: { role: 'FOLLOWER', UserId: user.id, PostId: post.PostId } });
       expect(member).toBeNull();
     });
