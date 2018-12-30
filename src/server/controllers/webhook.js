@@ -1,5 +1,5 @@
 import libemail from '../lib/email';
-import { parseEmailAddress } from '../lib/utils';
+import { parseEmailAddress, extractEmailsFromString } from '../lib/utils';
 import { createJwt } from '../lib/auth';
 import models from '../models';
 import config from 'config';
