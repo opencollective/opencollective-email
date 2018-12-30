@@ -1,5 +1,5 @@
 import libemail from '../lib/email';
-import { extractInboxAndTagsFromEmailAddress } from '../lib/utils';
+import { parseEmailAddress } from '../lib/utils';
 import { createJwt } from '../lib/auth';
 import models from '../models';
 import config from 'config';
@@ -27,8 +27,8 @@ export default async function webhook(req, res, next) {
     throw new Error('Invalid webhook payload: missing "recipient"');
   }
 
-  const { inbox: groupSlug } = extractInboxAndTagsFromEmailAddress(req.body.recipient);
-  const groupEmail = `${groupSlug}@${get(config, 'collective.domain')}`;
+  const { groupSlug } = parseEmailAddress(req.body.recipient);
+  const groupEmail = `${groupSlug}@${get(config, 'collective.domain')}`.toLowerCase();
   if (req.body.sender === groupEmail) {
     console.info('Receiving email sent from the group to the group, discarding');
     return res.send('ok');

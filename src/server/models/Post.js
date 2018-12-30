@@ -124,7 +124,6 @@ module.exports = (sequelize, DataTypes) => {
    */
   Post.createFromEmail = async email => {
     const { groupSlug, tags, recipients } = libemail.parseHeaders(email);
-
     const groupEmail = `${groupSlug}@${get(config, 'collective.domain')}`;
     const userData = extractNamesAndEmailsFromString(email.From)[0];
     const user = await models.User.findOrCreate(userData);
@@ -179,7 +178,10 @@ module.exports = (sequelize, DataTypes) => {
     const headers = {
       'Message-Id': `${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(config, 'collective.domain')}`,
       References: `${groupSlug}/posts/${thread.PostId}@${get(config, 'collective.domain')}`,
-      'Reply-To': `${group.name} <${groupSlug}+post:${post.PostId}@${get(config, 'collective.domain')}>`,
+      'Reply-To': `${group.name} <${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(
+        config,
+        'collective.domain',
+      )}>`,
     };
 
     let data;
@@ -196,7 +198,7 @@ module.exports = (sequelize, DataTypes) => {
       data = { post: post.dataValues, unsubscribe: { label: unsubscribeLabel, data: { GroupId: group.id } } };
       await libemail.sendTemplate('post', data, groupEmail, {
         exclude: [user.email],
-        from: `${userData.name} <${groupSlug}@${get(config, 'collective.domain')}>`,
+        from: `${userData.name} <${groupEmail}>`,
         cc: [...followers.map(u => u.email), ...recipients.map(r => r.email)],
         headers,
       });
@@ -207,7 +209,7 @@ module.exports = (sequelize, DataTypes) => {
       data = { post: post.dataValues, unsubscribe: { label: unsubscribeLabel, data: { PostId: thread.PostId } } };
       await libemail.sendTemplate('post', data, groupEmail, {
         exclude: [user.email],
-        from: `${userData.name} <${groupSlug}@${get(config, 'collective.domain')}>`,
+        from: `${userData.name} <${groupEmail}>`,
         cc: [...followers.map(u => u.email), ...recipients.map(r => r.email)],
         headers,
       });

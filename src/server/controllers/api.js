@@ -39,7 +39,17 @@ export async function publishEmail(req, res, next) {
       );
     }
   }
-  const email = await retrieveEmail(token);
+  let email;
+  try {
+    email = await retrieveEmail(token);
+  } catch (e) {
+    if (e.statusCode === 404) {
+      return res.status(404).send('Email not found');
+    } else {
+      console.error('>>> retrieveEmail error', token, 'response:', JSON.stringify(e));
+      return res.send('Unknown error');
+    }
+  }
   const post = await models.Post.createFromEmail(email);
   let redirect = `/${groupSlug}`;
   if (post) {

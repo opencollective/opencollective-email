@@ -1,4 +1,4 @@
-import { uniq, uniqBy } from 'lodash';
+import { uniq, uniqBy, get } from 'lodash';
 
 export const isValidEmail = email => {
   if (typeof email !== 'string') return false;
@@ -37,12 +37,24 @@ export const extractNamesAndEmailsFromString = str => {
   return uniqBy(recipients.filter(r => isValidEmail(r.email)), r => r.email);
 };
 
-export const extractInboxAndTagsFromEmailAddress = emailAddress => {
+/**
+ * Parses components of an email address
+ * @param {*} emailAddress
+ * @PRE: group/threads/:ThreadId/:PostId+tag1+tag2@domain.tld
+ * @POST: { inbox, ThreadId, PostId, tags[] }
+ */
+export const parseEmailAddress = emailAddress => {
   const emailTokens = emailAddress.match(/([^\+]*)(\+(.*))?@.*/);
   if (!emailTokens) {
     throw new Error('Invalid email address');
   }
-  const inbox = emailTokens[1].toLowerCase();
-  const tags = emailTokens[3].toLowerCase().split('+');
-  return { inbox, tags };
+  let inbox = emailTokens[1].toLowerCase();
+
+  const parts = inbox.split('/');
+  const ThreadId = get(parts, '[2]') ? Number(get(parts, '[2]')) : undefined;
+  const PostId = get(parts, '[3]') ? Number(get(parts, '[3]')) : undefined;
+
+  const tags = emailTokens[3] ? emailTokens[3].toLowerCase().split('+') : [];
+  const groupSlug = get(parts, '[0]');
+  return { groupSlug, tags, ThreadId, PostId };
 };

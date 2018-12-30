@@ -5,7 +5,7 @@ const debug = debugLib('email');
 import { get, uniq } from 'lodash';
 import nodemailer from 'nodemailer';
 import config from 'config';
-import { extractInboxAndTagsFromEmailAddress, extractNamesAndEmailsFromString } from '../lib/utils';
+import { parseEmailAddress, extractNamesAndEmailsFromString } from '../lib/utils';
 import { createJwt } from '../lib/auth';
 import path from 'path';
 import fs from 'fs';
@@ -64,6 +64,10 @@ const generateCustomTemplate = (options, data) => {
 
 libemail.generateUnsubscribeUrl = async function(email, where) {
   const user = await models.User.findByEmail(email);
+  if (!user) {
+    console.warn(`Cannot generate unsubscribe url for ${email}: user not found`);
+    return null;
+  }
   where.role = 'FOLLOWER';
   where.UserId = user.id;
   const members = await models.Member.findAll();
@@ -85,11 +89,11 @@ libemail.parseHeaders = function(email) {
   }
   const sender = email.sender.toLowerCase();
   const recipient = email.recipient || email.recipients; // mailgun's inconsistent api
-  const { inbox, tags } = extractInboxAndTagsFromEmailAddress(recipient);
+  const { groupSlug, tags } = parseEmailAddress(recipient);
   const recipients = extractNamesAndEmailsFromString(`${email.To}, ${email.Cc}`).filter(r => {
     return r.email && r.email.toLowerCase() !== sender && r.email.toLowerCase() !== recipient.toLowerCase();
   });
-  return { sender, groupSlug: inbox, tags, recipients };
+  return { sender, groupSlug, tags, recipients };
 };
 
 /**
@@ -103,11 +107,23 @@ libemail.sendTemplate = async function(template, data, to, options = {}) {
   if ((options.exclude || []).includes(to)) {
     throw new Error(`Recipient is in the exclude list (${to})`);
   }
+  const cc = uniq((options.cc || []).map(r => r.trim().toLowerCase())).filter(email => {
+    if (options.exclude && options.exclude.includes(email)) {
+      console.info(`Excluding ${email}`);
+      return false;
+    }
 
-  let cc = uniq((options.cc || []).map(r => r.trim().toLowerCase()));
-  if (options.exclude) {
-    cc = cc.filter(email => !options.exclude.includes(email));
-  }
+    // If for some reason the sender sends an email to the group and cc the group as well,
+    // we ignore this user error
+    if (email.substr(email.indexOf('@') + 1) === get(config, 'collective.domain')) {
+      const { groupSlug } = parseEmailAddress(email);
+      if (to.substr(0, to.indexOf('@')) === groupSlug) {
+        console.info(`Skipping ${email}`);
+        return false;
+      }
+    }
+    return true;
+  });
   const subject = templates[template].subject(data);
   debug('Sending', template, 'email to', to, 'cc', cc, subject);
   if (process.env.DEBUG && process.env.DEBUG.match(/data/)) {
@@ -179,7 +195,7 @@ libemail.send = async function(to, subject, text, html, options = {}) {
     const recipientSlug = to.substr(0, to.indexOf('@'));
     const filepath = path.resolve(`/tmp/${options.template}.${recipientSlug}.html`);
     fs.writeFileSync(filepath, html);
-    debug('preview: ', filepath);
+    debug('preview:', filepath);
   }
   if (!transport) {
     console.warn('lib/email: please configure mailgun or run a local test mail server (see README).');
@@ -196,7 +212,7 @@ libemail.send = async function(to, subject, text, html, options = {}) {
   // only attach tag in production to keep data clean
   const tag = config.env === 'production' ? options.tag : 'internal';
   const headers = { 'X-Mailgun-Tag': tag, 'X-Mailgun-Dkim': 'yes', ...options.headers };
-
+  debug('send from:', from, 'to:', to, 'cc:', cc, JSON.stringify(headers));
   return await mailgun.sendMail({
     from,
     cc,
