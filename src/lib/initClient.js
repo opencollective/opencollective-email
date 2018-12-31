@@ -8,6 +8,7 @@ import { ApolloLink } from 'apollo-link';
 import { onError } from 'apollo-link-error';
 import { setContext } from 'apollo-link-context';
 import { InMemoryCache, IntrospectionFragmentMatcher } from 'apollo-cache-inmemory';
+import getConfig from 'next/config';
 const { publicRuntimeConfig } = getConfig();
 
 let apolloClient = null;
