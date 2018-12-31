@@ -1,9 +1,10 @@
 {
   "title": "#CitizenSpring🌱",
   "description": "Citizens coming together to offer an alternative to political parties in the upcoming elections in Belgium",
+  "longDescription": "This is the global coordination group at the Belgian level. Join the movement!",
   "website": "https://citizenspring.be",
-  "logo": "static/images/icon.png",
-  "background": "static/images/background.jpg",
+  "logo": "/static/images/icon.png",
+  "background": "/static/images/background.jpg",
   "home": {
     "toplinks": [
       {

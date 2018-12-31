@@ -25,6 +25,9 @@ module.exports = {
             type: DataTypes.INTEGER,
             allowNull: false,
           },
+          status: {
+            type: DataTypes.STRING, // PUBLISHED | ARCHIVED | DRAFT | DELETED
+          },
           uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
           UserId: {
             type: DataTypes.INTEGER,
@@ -68,12 +71,12 @@ module.exports = {
         },
       )
       .then(() =>
-        queryInterface.addIndex('Groups', ['slug', 'version'], {
+        queryInterface.addIndex('Groups', ['slug', 'status'], {
           indicesType: 'UNIQUE',
         }),
       )
       .then(() =>
-        queryInterface.addIndex('Groups', ['GroupId', 'version'], {
+        queryInterface.addIndex('Groups', ['GroupId', 'status'], {
           indicesType: 'UNIQUE',
         }),
       );

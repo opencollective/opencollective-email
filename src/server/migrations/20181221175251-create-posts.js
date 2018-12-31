@@ -25,6 +25,9 @@ module.exports = {
             type: DataTypes.INTEGER,
             allowNull: false,
           },
+          status: {
+            type: DataTypes.STRING, // PUBLISHED | ARCHIVED | DRAFT | DELETED
+          },
           GroupId: {
             type: DataTypes.INTEGER,
             references: {
@@ -85,12 +88,13 @@ module.exports = {
         },
       )
       .then(() =>
-        queryInterface.addIndex('Posts', ['slug', 'version'], {
+        queryInterface.addIndex('Posts', ['slug', 'status'], {
           indicesType: 'UNIQUE',
         }),
       )
+      .then(() => queryInterface.addIndex('Posts', ['ParentPostId', 'status']))
       .then(() =>
-        queryInterface.addIndex('Posts', ['PostId', 'version'], {
+        queryInterface.addIndex('Posts', ['PostId', 'status'], {
           indicesType: 'UNIQUE',
         }),
       );

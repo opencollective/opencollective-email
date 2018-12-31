@@ -9,5 +9,20 @@
       }
     ]
   ],
-  "plugins": ["add-module-exports", "lodash"]
+  "plugins": [
+    "add-module-exports",
+    "lodash",
+    [
+      "react-intl",
+      {
+        "messagesDir": "./build/messages/"
+      }
+    ],
+    "styled-components"
+  ],
+  "env": {
+    "development": {
+      "compact": false
+    }
+  }
 }

@@ -1,5 +1,4 @@
 import React from 'react';
-import Document from './home.mdx';
 import { Button } from 'semantic-ui-react';
 import settings from '../../settings.json';
 import { get } from 'lodash';
@@ -44,14 +43,7 @@ export default () => (
     </ul>
     <H1>{settings.title}</H1>
     <H2>{settings.description}</H2>
-    <Document
-      components={{
-        h1: H1,
-        pre: Pre,
-        code: Code,
-        inlineCode: InlineCode,
-      }}
-    />
+    <p>{settings.longDescription}</p>
     <div className="buttons">
       {get(settings, 'home.buttons', []).map(button => (
         <Button color="green" inverted onClick={() => (window.location.href = button.href)}>

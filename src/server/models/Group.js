@@ -26,6 +26,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 1,
       },
+      status: {
+        type: DataTypes.STRING, // PUBLISHED | ARCHIVED | DRAFT | DELETED,
+        defaultValue: 'PUBLISHED',
+      },
       uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
       UserId: {
         type: DataTypes.INTEGER,
@@ -88,13 +92,15 @@ module.exports = (sequelize, DataTypes) => {
   /**
    * Edits a group and saves a new version
    */
-  Group.prototype.edit = function(groupData) {
+  Group.prototype.edit = async function(groupData) {
     const newVersionData = {
       ...omit(this.dataValues, ['id']),
       ...groupData,
       version: this.version + 1,
+      status: 'PUBLISHED',
     };
-    return Group.create(newVersionData);
+    await this.update({ status: 'ARCHIVED' });
+    return await Group.create(newVersionData);
   };
 
   /**

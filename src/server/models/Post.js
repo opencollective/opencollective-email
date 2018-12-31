@@ -27,6 +27,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         defaultValue: 1,
       },
+      status: {
+        type: DataTypes.STRING, // PUBLISHED | ARCHIVED | DRAFT | DELETED,
+        defaultValue: 'PUBLISHED',
+      },
       GroupId: {
         type: DataTypes.INTEGER,
         references: {
@@ -219,13 +223,14 @@ module.exports = (sequelize, DataTypes) => {
   /**
    * Edits a post and saves a new version
    */
-  Post.prototype.edit = function(postData) {
+  Post.prototype.edit = async function(postData) {
     const newVersionData = {
       ...omit(this.dataValues, ['id']),
       ...postData,
       version: this.version + 1,
     };
-    return Post.create(newVersionData);
+    await this.update({ status: 'ARCHIVED' });
+    return await Post.create(newVersionData);
   };
 
   /**
