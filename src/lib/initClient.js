@@ -8,6 +8,7 @@ import { ApolloLink } from 'apollo-link';
 import { onError } from 'apollo-link-error';
 import { setContext } from 'apollo-link-context';
 import { InMemoryCache, IntrospectionFragmentMatcher } from 'apollo-cache-inmemory';
+const { publicRuntimeConfig } = getConfig();
 
 let apolloClient = null;
 
@@ -61,7 +62,7 @@ function createClient(initialState) {
   });
 
   const httpLink = new HttpLink({
-    uri: 'http://localhost:3000/graphql/v1',
+    uri: publicRuntimeConfig.GRAPHQL_URL || 'http://localhost:3000/graphql/v1',
     fetch,
   });
 

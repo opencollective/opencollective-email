@@ -40,8 +40,8 @@ export const extractNamesAndEmailsFromString = str => {
 /**
  * Parses components of an email address
  * @param {*} emailAddress
- * @PRE: group/threads/:ThreadId/:PostId+tag1+tag2@domain.tld
- * @POST: { inbox, ThreadId, PostId, tags[] }
+ * @PRE: group/posts/:ParentPostId/:PostId+tag1+tag2@domain.tld
+ * @POST: { inbox, ParentPostId, PostId, tags[] }
  */
 export const parseEmailAddress = emailAddress => {
   const emailTokens = emailAddress.match(/([^\+]*)(\+(.*))?@.*/);
@@ -51,10 +51,10 @@ export const parseEmailAddress = emailAddress => {
   let inbox = emailTokens[1].toLowerCase();
 
   const parts = inbox.split('/');
-  const ThreadId = get(parts, '[2]') ? Number(get(parts, '[2]')) : undefined;
+  const ParentPostId = get(parts, '[2]') ? Number(get(parts, '[2]')) : undefined;
   const PostId = get(parts, '[3]') ? Number(get(parts, '[3]')) : undefined;
 
   const tags = emailTokens[3] ? emailTokens[3].toLowerCase().split('+') : [];
   const groupSlug = get(parts, '[0]');
-  return { groupSlug, tags, ThreadId, PostId };
+  return { groupSlug, tags, ParentPostId, PostId };
 };

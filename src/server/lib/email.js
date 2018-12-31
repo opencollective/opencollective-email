@@ -11,7 +11,8 @@ import path from 'path';
 import fs from 'fs';
 
 import * as shortcode from '../templates/shortcode.email.js';
-import * as createUser from '../templates/createUser.email.js';
+import * as confirmEmail from '../templates/confirmEmail.email.js';
+import * as joinGroup from '../templates/joinGroup.email.js';
 import * as groupCreated from '../templates/groupCreated.email.js';
 import * as groupInfo from '../templates/groupInfo.email.js';
 import * as threadCreated from '../templates/threadCreated.email.js';
@@ -20,7 +21,8 @@ import models from '../models';
 
 const templates = {
   shortcode,
-  createUser,
+  confirmEmail,
+  joinGroup,
   threadCreated,
   post,
   groupCreated,
@@ -89,11 +91,11 @@ libemail.parseHeaders = function(email) {
   }
   const sender = email.sender.toLowerCase();
   const recipient = email.recipient || email.recipients; // mailgun's inconsistent api
-  const { groupSlug, tags } = parseEmailAddress(recipient);
+  const { groupSlug, tags, ParentPostId, PostId } = parseEmailAddress(recipient);
   const recipients = extractNamesAndEmailsFromString(`${email.To}, ${email.Cc}`).filter(r => {
     return r.email && r.email.toLowerCase() !== sender && r.email.toLowerCase() !== recipient.toLowerCase();
   });
-  return { sender, groupSlug, tags, recipients };
+  return { sender, groupSlug, tags, recipients, ParentPostId, PostId };
 };
 
 /**

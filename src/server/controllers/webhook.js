@@ -1,5 +1,5 @@
 import libemail from '../lib/email';
-import { parseEmailAddress, extractEmailsFromString } from '../lib/utils';
+import { parseEmailAddress, extractEmailsFromString, isEmpty } from '../lib/utils';
 import { createJwt } from '../lib/auth';
 import models from '../models';
 import config from 'config';
@@ -21,7 +21,12 @@ async function handleFirstTimeUser(groupSlug, email) {
     groupSlug,
     confirmationUrl: `${config.collective.website}/api/publishEmail?groupSlug=${groupSlug}&token=${token}`,
   };
-  return await libemail.sendTemplate('createUser', data, email.sender);
+  if (isEmpty(email['stripped-text'])) {
+    return await libemail.sendTemplate('joinGroup', data, email.sender);
+  } else {
+    data.post = { html: email['stripped-html'] };
+    return await libemail.sendTemplate('confirmEmail', data, email.sender);
+  }
 }
 
 export default async function webhook(req, res, next) {
@@ -51,6 +56,6 @@ export default async function webhook(req, res, next) {
   }
 
   await models.Post.createFromEmail(req.body);
-
+  console.log('>>> sending ok');
   return res.send('ok');
 }

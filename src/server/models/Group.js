@@ -1,6 +1,8 @@
 'use strict';
 import slugify from 'limax';
 import { omit } from 'lodash';
+import debugLib from 'debug';
+const debug = debugLib('group');
 
 module.exports = (sequelize, DataTypes) => {
   const { models, Op } = sequelize;
@@ -101,6 +103,28 @@ module.exports = (sequelize, DataTypes) => {
     };
     await this.update({ status: 'ARCHIVED' });
     return await Group.create(newVersionData);
+  };
+
+  Group.prototype.getPosts = async function(options = {}) {
+    const query = {
+      where: {
+        GroupId: this.GroupId,
+        ParentPostId: { [Op.is]: null },
+        status: 'PUBLISHED',
+      },
+      order: [['id', 'DESC']],
+    };
+    if (options.limit) query.limit = options.limit;
+    if (options.offset) query.offset = options.offset;
+    debug('getPosts', this.slug, query);
+    const { count, rows } = await models.Post.findAndCountAll(query);
+    return {
+      total: count,
+      nodes: rows,
+      type: 'Post',
+      limit: options.limit,
+      offset: options.offset,
+    };
   };
 
   /**

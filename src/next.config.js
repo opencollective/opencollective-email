@@ -35,6 +35,7 @@ const nextConfig = {
         API_URL: 'https://api.opencollective.com',
         DYNAMIC_IMPORT: true,
         COLLECTIVE_DOMAIN: get(collective, 'domain'),
+        GRAPHQL_URL: `${get(collective, 'website')}/graphql/v1`,
         WEBSITE_URL: 'https://opencollective.com',
       }),
     );

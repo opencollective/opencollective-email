@@ -127,7 +127,7 @@ module.exports = (sequelize, DataTypes) => {
    *   - sender and all recipients (To, Cc) added as followers of the Post
    */
   Post.createFromEmail = async email => {
-    const { groupSlug, tags, recipients } = libemail.parseHeaders(email);
+    const { groupSlug, tags, recipients, ParentPostId, PostId } = libemail.parseHeaders(email);
     const groupEmail = `${groupSlug}@${get(config, 'collective.domain')}`;
     const userData = extractNamesAndEmailsFromString(email.From)[0];
     const user = await models.User.findOrCreate(userData);
@@ -148,7 +148,9 @@ module.exports = (sequelize, DataTypes) => {
         await group.addFollowers([...recipients, userData]);
         // we send an update about the group info
         const followers = await group.getFollowers();
-        await libemail.sendTemplate('groupInfo', { group, followers }, userData.email);
+        const posts = await group.getPosts();
+        console.log('>>> posts found', group.id, posts);
+        await libemail.sendTemplate('groupInfo', { group, followers, posts }, userData.email);
       }
     }
 
@@ -158,8 +160,10 @@ module.exports = (sequelize, DataTypes) => {
     }
 
     let EmailThreadId, parentPost;
-    // if it's a reply to a thread
-    if (email['In-Reply-To']) {
+    if (ParentPostId) {
+      parentPost = await models.Post.findOne({ where: { PostId: ParentPostId, status: 'PUBLISHED' } });
+    } else if (email['In-Reply-To']) {
+      // if it's a reply to a thread
       EmailThreadId = email['In-Reply-To'];
       parentPost = await models.Post.findByEmailThreadId(EmailThreadId);
     } else {
@@ -174,7 +178,7 @@ module.exports = (sequelize, DataTypes) => {
       ParentPostId: parentPost && parentPost.PostId,
     };
     const post = await user.createPost(postData);
-
+    console.log('>>> POST CREATED <<<', post.id);
     const thread = parentPost ? parentPost : post;
     // We always add people explicitly mentioned in To or Cc as followers of the thread
     await thread.addFollowers(recipients);
@@ -218,6 +222,7 @@ module.exports = (sequelize, DataTypes) => {
         headers,
       });
     }
+    console.log('>>> returning post', post.id);
     return post;
   };
   /**

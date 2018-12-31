@@ -7,23 +7,29 @@ export const subject = ({ group }) => {
   return `${group.slug} group info`;
 };
 
-export const previewText = ({ group, followers }) => {
-  return `${group.slug}@${get(config, 'collective.domain')} currently has ${followers.length} followers`;
+export const previewText = ({ group, followers, posts }) => {
+  return `${group.slug}@${get(config, 'collective.domain')} has ${followers.length} followers and ${posts.total} posts`;
 };
 
-export const body = ({ group, followers }) => {
+export const body = ({ group, followers, posts }) => {
   const groupEmail = `${group.slug}@${get(config, 'collective.domain')}`;
+  const groupUrl = `${get(config, 'collective.website')}/${group.slug}`;
   return (
     <Layout>
-      <p>This is the latest data about the {group.slug} group.</p>
+      <p>About the {group.slug} group:</p>
+      <h3>{followers.length} followers</h3>
+      <div>{followers.map(f => f.name).join(', ')}</div>
+      <h3>Latest posts</h3>
       <ul>
-        {followers.map(follower => (
-          <li>{follower.name}</li>
+        {posts.nodes.map(post => (
+          <li>
+            <a href={`${groupUrl}/${post.PostId}`}>{post.title}</a>
+          </li>
         ))}
       </ul>
       <p>
-        You can manage it online on {get(config, 'collective.website')}/{group.slug} (coming soon). You can also easily
-        manage it right from your email client:
+        You can view it online on {get(config, 'collective.website')}/{group.slug}. You can also easily manage it right
+        from your email client:
       </p>
       <h3>How to add people?</h3>
       <p>

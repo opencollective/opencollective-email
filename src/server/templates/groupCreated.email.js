@@ -22,8 +22,8 @@ export const body = ({ group, followers }) => {
         ))}
       </ul>
       <p>
-        You can manage it online on {get(config, 'collective.website')}/{group.slug}} (coming soon). You can also easily
-        manage it right from your email client:
+        You can view it online on {get(config, 'collective.website')}/{group.slug}. You can also easily manage it right
+        from your email client:
       </p>
       <h3>How to add people?</h3>
       <p>

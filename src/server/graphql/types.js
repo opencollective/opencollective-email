@@ -284,20 +284,7 @@ export const GroupType = new GraphQLObjectType({
       posts: {
         type: NodeListType,
         async resolve(group, args) {
-          const query = {
-            where: { GroupId: group.id, ParentPostId: { [Op.is]: null } },
-            limit: args.limit,
-            order: [['id', 'DESC']],
-            offset: args.offset,
-          };
-          const { count, rows } = await models.Post.findAndCountAll(query);
-          return {
-            total: count,
-            nodes: rows,
-            type: 'Post',
-            limit: args.limit,
-            offset: args.offset,
-          };
+          return group.getPosts(args);
         },
       },
       version: {

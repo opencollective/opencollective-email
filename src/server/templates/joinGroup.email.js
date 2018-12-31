@@ -3,6 +3,7 @@ import React from 'react';
 import Oy from 'oy-vey';
 import Layout from './email.layout';
 import { get } from 'lodash';
+import settings from '../../../settings.json';
 
 const styles = {
   btn: {
@@ -23,33 +24,31 @@ const styles = {
   },
 };
 
-export const subject = () => {
-  return `Action required: your email is pending`;
+export const subject = ({ groupSlug }) => {
+  return `Action required: please confirm to join the ${groupSlug} group`;
 };
 
 export const previewText = ({ groupSlug }) => {
-  return `Please confirm sending your email to ${groupSlug}@${get(config, 'collective.domain')}`;
+  return `You are one click away from joining the ${groupSlug}@${get(config, 'collective.domain')} mailing list`;
 };
 
 export const body = ({ groupSlug, confirmationUrl }) => {
+  const groupUrl = `${get(config, 'collective.website')}/${groupSlug}`;
   return (
     <Layout>
       <p>
-        Thank you for contacting the{' '}
-        <a href={get(config, 'collective.website')}>{get(config, 'collective.name')} Collective</a>. Since this is your
-        very first email to an open collective, we want to make sure that you understand that your email will be made
-        public so that anyone in the collective, present or future, can access it.
+        Before you join, please make sure that you read the <a href={settings.code_of_conduct}>Code Of Conduct</a>. All
+        emails sent to this group are published on <a href={groupUrl}>{groupUrl}</a>.
       </p>
       <p>To continue, click on the button below.</p>
       <center>
         <a style={styles.btn} href={confirmationUrl}>
-          post my email
-          <br />
-          to the {groupSlug} group
+          Join the {groupSlug} group
         </a>
       </center>
       <p style={styles.disclaimer}>
-        Note: If you'd like to remain anonymous, we recommend that you send your email from a different email address.
+        Note: If you'd like to use another identity, we recommend that you send your email from a different email
+        address.
       </p>
     </Layout>
   );

@@ -36,13 +36,13 @@ describe('utils', () => {
     parsed = utils.parseEmailAddress('coordination/posts/13@citizenspring.be');
     expect(parsed).toEqual({
       groupSlug: 'coordination',
-      ThreadId: 13,
+      ParentPostId: 13,
       tags: [],
     });
     parsed = utils.parseEmailAddress('coordination/posts/13/312+tag1@citizenspring.be');
     expect(parsed).toEqual({
       groupSlug: 'coordination',
-      ThreadId: 13,
+      ParentPostId: 13,
       PostId: 312,
       tags: ['tag1'],
     });
