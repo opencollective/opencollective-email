@@ -21,6 +21,7 @@ const nextConfig = {
   publicRuntimeConfig: {
     // Will be available on both server and client
     COLLECTIVE_DOMAIN: get(collective, 'domain'),
+    GRAPHQL_URL: `${get(collective, 'website')}/graphql/v1`,
   },
   webpack: config => {
     config.plugins.push(
@@ -31,12 +32,7 @@ const nextConfig = {
       // Set extra environment variables accessible through process.env.*
       // Will be replaced by webpack by their values!
       new webpack.EnvironmentPlugin({
-        API_KEY: null,
-        API_URL: 'https://api.opencollective.com',
         DYNAMIC_IMPORT: true,
-        COLLECTIVE_DOMAIN: get(collective, 'domain'),
-        GRAPHQL_URL: `${get(collective, 'website')}/graphql/v1`,
-        WEBSITE_URL: 'https://opencollective.com',
       }),
     );
 

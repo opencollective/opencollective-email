@@ -13,7 +13,6 @@ const port = parseInt(PORT, 10) || 3000;
 import routes from './routes';
 import pages from './pages';
 // jest.setup.js
-import { setConfig } from 'next/config';
 import { nextConfig } from '../next.config';
 
 console.log('>>> nextConfig.publicRuntimeConfig', nextConfig.publicRuntimeConfig);
