@@ -1,9 +1,7 @@
 {
   "collective": {
     "name": "Citizen Spring 🌱",
-    "slug": "citizenspring",
-    "domain": "citizenspring.be",
-    "website": "https://citizenspring.be"
+    "slug": "citizenspring"
   },
   "email": {
     "from": "CitizenSpring🌱 <info@citizenspring.be>",
@@ -14,6 +12,8 @@
     }
   },
   "server": {
+    "domain": "citizenspring.be",
+    "baseUrl": "https://citizenspring.be",
     "database": {
       "database": "citizenspring",
       "username": "",

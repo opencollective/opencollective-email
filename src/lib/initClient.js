@@ -12,6 +12,8 @@ import getConfig from 'next/config';
 const { publicRuntimeConfig } = getConfig();
 
 let apolloClient = null;
+const graphqlUrl = publicRuntimeConfig.GRAPHQL_URL || 'http://localhost:3000/graphql/v1';
+console.log('> Connection to graphql server on', graphqlUrl);
 
 const fragmentMatcher = new IntrospectionFragmentMatcher({
   introspectionQueryResultData: {
@@ -63,7 +65,7 @@ function createClient(initialState) {
   });
 
   const httpLink = new HttpLink({
-    uri: publicRuntimeConfig.GRAPHQL_URL || 'http://localhost:3000/graphql/v1',
+    uri: graphqlUrl,
     fetch,
   });
 

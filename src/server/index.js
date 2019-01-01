@@ -15,8 +15,6 @@ import pages from './pages';
 // jest.setup.js
 import { nextConfig } from '../next.config';
 
-console.log('>>> nextConfig.publicRuntimeConfig', nextConfig.publicRuntimeConfig);
-
 const nextApp = next({
   dir: path.dirname(__dirname),
   dev: process.env.NODE_ENV !== 'production',

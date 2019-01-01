@@ -29,7 +29,7 @@ export const subject = ({ groupSlug }) => {
 };
 
 export const previewText = ({ groupSlug }) => {
-  return `You are one click away from joining the ${groupSlug}@${get(config, 'collective.domain')} mailing list`;
+  return `You are one click away from joining the ${groupSlug}@${get(config, 'server.domain')} mailing list`;
 };
 
 export const body = ({ groupSlug, confirmationUrl }) => {

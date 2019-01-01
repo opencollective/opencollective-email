@@ -8,11 +8,11 @@ export const subject = () => {
 };
 
 export const previewText = ({ group, followers }) => {
-  return `${group.slug}@${get(config, 'collective.domain')} currently has ${followers.length} followers`;
+  return `${group.slug}@${get(config, 'server.domain')} currently has ${followers.length} followers`;
 };
 
 export const body = ({ group, followers }) => {
-  const groupEmail = `${group.slug}@${get(config, 'collective.domain')}`;
+  const groupEmail = `${group.slug}@${get(config, 'server.domain')}`;
   return (
     <Layout>
       <p>Welcome to your new email group {groupEmail}.</p>

@@ -1,7 +1,6 @@
 import withCSS from '@zeit/next-css';
 import webpack from 'webpack';
-import { get } from 'lodash';
-import { collective } from 'config';
+import { server } from 'config';
 
 const images = require('remark-images');
 const emoji = require('remark-emoji');
@@ -20,8 +19,8 @@ const nextConfig = {
   },
   publicRuntimeConfig: {
     // Will be available on both server and client
-    COLLECTIVE_DOMAIN: get(collective, 'domain'),
-    GRAPHQL_URL: `${get(collective, 'website')}/graphql/v1`,
+    COLLECTIVE_DOMAIN: server.domain,
+    GRAPHQL_URL: `${server.baseUrl}/graphql/v1`,
   },
   webpack: config => {
     config.plugins.push(
@@ -99,9 +98,9 @@ const nextConfig = {
 
     // Disable the rule forcing react to be bundled in commons chunk
     // Currently needed to skip the react-dom shipped by react-tag-input
-    if (get(config, 'optimization.splitChunks.cacheGroups.react')) {
-      delete config.optimization.splitChunks.cacheGroups.react;
-    }
+    // if (get(config, 'optimization.splitChunks.cacheGroups.react')) {
+    //   delete config.optimization.splitChunks.cacheGroups.react;
+    // }
 
     return config;
   },

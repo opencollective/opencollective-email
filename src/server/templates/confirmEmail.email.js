@@ -28,7 +28,7 @@ export const subject = () => {
 };
 
 export const previewText = ({ groupSlug }) => {
-  return `Please confirm sending your email to ${groupSlug}@${get(config, 'collective.domain')}`;
+  return `Please confirm sending your email to ${groupSlug}@${get(config, 'server.domain')}`;
 };
 
 export const body = ({ groupSlug, confirmationUrl, post }) => {

@@ -10,7 +10,6 @@
     ]
   ],
   "plugins": [
-    "add-module-exports",
     "lodash",
     [
       "react-intl",

@@ -16,7 +16,7 @@ export const retrieveEmail = async ({ mailServer, messageId }) => {
   };
   const url = `https://${mailServer}.api.mailgun.net/v3/domains/${get(
     config,
-    'collective.domain',
+    'server.domain',
   )}/messages/${messageId}`;
   return await request.get(url, requestOptions);
 };
@@ -35,7 +35,7 @@ export async function publishEmail(req, res, next) {
   } catch (e) {
     if (e && e.name === 'TokenExpiredError') {
       throw new Error(
-        `The token has expired. Please resend your email to ${groupSlug}@${get(config, 'collective.domain')}`,
+        `The token has expired. Please resend your email to ${groupSlug}@${get(config, 'server.domain')}`,
       );
     }
   }
@@ -65,7 +65,7 @@ export async function unfollow(req, res, next) {
   } catch (e) {
     if (e && e.name === 'TokenExpiredError') {
       throw new Error(
-        `The token has expired. Please resend your email to ${groupSlug}@${get(config, 'collective.domain')}`,
+        `The token has expired. Please resend your email to ${groupSlug}@${get(config, 'server.domain')}`,
       );
     }
   }

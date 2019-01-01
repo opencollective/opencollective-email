@@ -117,7 +117,7 @@ libemail.sendTemplate = async function(template, data, to, options = {}) {
 
     // If for some reason the sender sends an email to the group and cc the group as well,
     // we ignore this user error
-    if (email.substr(email.indexOf('@') + 1) === get(config, 'collective.domain')) {
+    if (email.substr(email.indexOf('@') + 1) === get(config, 'server.domain')) {
       const { groupSlug } = parseEmailAddress(email);
       if (to.substr(0, to.indexOf('@')) === groupSlug) {
         console.info(`Skipping ${email}`);

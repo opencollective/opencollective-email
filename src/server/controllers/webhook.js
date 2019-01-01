@@ -37,7 +37,7 @@ export default async function webhook(req, res, next) {
 
   // Ignore emails coming from ourselves (since we send emails to the group and cc recipients)
   const { groupSlug } = parseEmailAddress(req.body.recipient);
-  const groupEmail = `${groupSlug}@${get(config, 'collective.domain')}`.toLowerCase();
+  const groupEmail = `${groupSlug}@${get(config, 'server.domain')}`.toLowerCase();
   const defaultEmailFrom = extractEmailsFromString(get(config, 'email.from'))[0];
   if (req.body.sender === groupEmail || req.body.sender === defaultEmailFrom) {
     console.info('Receiving email sent from the group to the group, discarding');

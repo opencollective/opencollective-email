@@ -8,11 +8,11 @@ export const subject = ({ group }) => {
 };
 
 export const previewText = ({ group, followers, posts }) => {
-  return `${group.slug}@${get(config, 'collective.domain')} has ${followers.length} followers and ${posts.total} posts`;
+  return `${group.slug}@${get(config, 'server.domain')} has ${followers.length} followers and ${posts.total} posts`;
 };
 
 export const body = ({ group, followers, posts }) => {
-  const groupEmail = `${group.slug}@${get(config, 'collective.domain')}`;
+  const groupEmail = `${group.slug}@${get(config, 'server.domain')}`;
   const groupUrl = `${get(config, 'collective.website')}/${group.slug}`;
   return (
     <Layout>

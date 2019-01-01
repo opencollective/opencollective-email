@@ -22,6 +22,7 @@ class GroupPage extends React.Component {
 
   render() {
     const group = this.props.data.Group;
+    if (!group) return <div>Loading</div>;
     const groupEmail = `${group.slug}@${publicRuntimeConfig.COLLECTIVE_DOMAIN}`;
     return (
       <div>

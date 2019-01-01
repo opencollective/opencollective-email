@@ -128,7 +128,7 @@ module.exports = (sequelize, DataTypes) => {
    */
   Post.createFromEmail = async email => {
     const { groupSlug, tags, recipients, ParentPostId, PostId } = libemail.parseHeaders(email);
-    const groupEmail = `${groupSlug}@${get(config, 'collective.domain')}`;
+    const groupEmail = `${groupSlug}@${get(config, 'server.domain')}`;
     const userData = extractNamesAndEmailsFromString(email.From)[0];
     const user = await models.User.findOrCreate(userData);
 
@@ -184,11 +184,11 @@ module.exports = (sequelize, DataTypes) => {
     await thread.addFollowers(recipients);
 
     const headers = {
-      'Message-Id': `${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(config, 'collective.domain')}`,
-      References: `${groupSlug}/posts/${thread.PostId}@${get(config, 'collective.domain')}`,
+      'Message-Id': `${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(config, 'server.domain')}`,
+      References: `${groupSlug}/posts/${thread.PostId}@${get(config, 'server.domain')}`,
       'Reply-To': `${groupEmail} <${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(
         config,
-        'collective.domain',
+        'server.domain',
       )}>`,
     };
 
@@ -201,7 +201,7 @@ module.exports = (sequelize, DataTypes) => {
       // We send the new post to followers of the group + the recipients
       const unsubscribeLabel = `Click here to stop receiving new emails sent to ${group.slug}@${get(
         config,
-        'collective.domain',
+        'server.domain',
       )}`;
       data = { post: post.dataValues, unsubscribe: { label: unsubscribeLabel, data: { GroupId: group.id } } };
       await libemail.sendTemplate('post', data, groupEmail, {

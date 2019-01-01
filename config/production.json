@@ -12,7 +12,7 @@
           "acquire": 60000
         },
         "dialectOptions": {
-          "ssl": true
+          "ssl": false
         },
         "benchmark": true
       }
