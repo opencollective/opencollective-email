@@ -33,18 +33,39 @@ describe('utils', () => {
       groupSlug: 'coordination',
       tags: ['tag1', 'tag2'],
     });
-    parsed = utils.parseEmailAddress('coordination/posts/13@citizenspring.be');
+    parsed = utils.parseEmailAddress('coordination/13@citizenspring.be');
     expect(parsed).toEqual({
       groupSlug: 'coordination',
       ParentPostId: 13,
       tags: [],
     });
-    parsed = utils.parseEmailAddress('coordination/posts/13/312+tag1@citizenspring.be');
+    parsed = utils.parseEmailAddress('coordination/13/312+tag1@citizenspring.be');
     expect(parsed).toEqual({
       groupSlug: 'coordination',
       ParentPostId: 13,
       PostId: 312,
       tags: ['tag1'],
+    });
+    parsed = utils.parseEmailAddress('coordination/follow@citizenspring.be');
+    expect(parsed).toEqual({
+      groupSlug: 'coordination',
+      action: 'follow',
+      tags: [],
+    });
+    parsed = utils.parseEmailAddress('coordination/13/follow@citizenspring.be');
+    expect(parsed).toEqual({
+      groupSlug: 'coordination',
+      ParentPostId: 13,
+      action: 'follow',
+      tags: [],
+    });
+    parsed = utils.parseEmailAddress('coordination/13/321/follow@citizenspring.be');
+    expect(parsed).toEqual({
+      groupSlug: 'coordination',
+      ParentPostId: 13,
+      PostId: 321,
+      action: 'follow',
+      tags: [],
     });
   });
 });

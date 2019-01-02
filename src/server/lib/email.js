@@ -12,7 +12,9 @@ import fs from 'fs';
 
 import * as shortcode from '../templates/shortcode.email.js';
 import * as confirmEmail from '../templates/confirmEmail.email.js';
-import * as joinGroup from '../templates/joinGroup.email.js';
+import * as confirmJoinGroup from '../templates/confirmJoinGroup.email.js';
+import * as followGroup from '../templates/followGroup.email.js';
+import * as followThread from '../templates/followThread.email.js';
 import * as groupCreated from '../templates/groupCreated.email.js';
 import * as groupInfo from '../templates/groupInfo.email.js';
 import * as threadCreated from '../templates/threadCreated.email.js';
@@ -22,7 +24,9 @@ import models from '../models';
 const templates = {
   shortcode,
   confirmEmail,
-  joinGroup,
+  confirmJoinGroup,
+  followGroup,
+  followThread,
   threadCreated,
   post,
   groupCreated,
@@ -38,7 +42,7 @@ const generateCustomTemplate = (options, data) => {
     previewText = '';
   if (data.unsubscribe) {
     unsubscribeSnippet = `
-      <div class="footer" style="margin-top: 2rem; font-size: 10px;">
+      <div class="footer" style="margin-top: 2rem; font-size: 12px; text-decoration: none;">
         <a href="${data.unsubscribe.url}">
           ${data.unsubscribe.label}
         </a>
@@ -72,7 +76,6 @@ libemail.generateUnsubscribeUrl = async function(email, where) {
   }
   where.role = 'FOLLOWER';
   where.UserId = user.id;
-  const members = await models.Member.findAll();
   const member = await models.Member.findOne({ where });
   if (!member) {
     console.warn('libemail.generateUnsubscribeUrl: no membership found for', where);
@@ -82,7 +85,7 @@ libemail.generateUnsubscribeUrl = async function(email, where) {
     MemberId: member.id,
   };
   const token = createJwt('unfollow', tokenData, '7d');
-  return `${config.collective.website}/api/unfollow?token=${token}`;
+  return `${config.server.baseUrl}/api/unfollow?token=${token}`;
 };
 
 libemail.parseHeaders = function(email) {

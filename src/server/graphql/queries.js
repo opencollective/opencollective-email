@@ -28,8 +28,6 @@ const queries = {
       query.limit = args.limit || 20;
       query.offset = args.offset || 0;
       query.order = [['createdAt', 'DESC']];
-      query.logging = console.log;
-      console.log('>>> allPost for', args.groupSlug, query);
       const { count, rows } = await models.Post.findAndCountAll(query);
       const res = {
         total: count,
@@ -37,7 +35,6 @@ const queries = {
         limit: query.limit,
         offset: query.offset,
       };
-      console.log(res.nodes.map(n => n.dataValues));
       return res;
     },
   },
@@ -66,6 +63,28 @@ const queries = {
     },
     resolve: async (_, args) => {
       return await models.Group.findBySlug(args.groupSlug);
+    },
+  },
+
+  allGroups: {
+    type: NodeListType,
+    args: {
+      limit: { type: GraphQLInt },
+      offset: { type: GraphQLInt },
+    },
+    async resolve(_, args) {
+      const query = { where: {} };
+      query.limit = args.limit || 20;
+      query.offset = args.offset || 0;
+      query.order = [['createdAt', 'DESC']];
+      const { count, rows } = await models.Group.findAndCountAll(query);
+      const res = {
+        total: count,
+        nodes: rows,
+        limit: query.limit,
+        offset: query.offset,
+      };
+      return res;
     },
   },
 };

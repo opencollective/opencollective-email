@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import styled from 'styled-components';
 // import Spinner from 'react-spinkit';
 
-import PostListItem from '../components/Post/ListItem';
+import PostListItem from '../components/PostItem';
 
 const Wrapper = styled.div`
   margin: 0px;
@@ -37,7 +37,13 @@ export default class PostList extends Component {
     return (
       <Wrapper>
         {posts.map((item, i) => (
-          <PostListItem key={item.id} post={item} groupSlug={this.props.groupSlug} />
+          <PostListItem
+            key={i}
+            post={item}
+            repliesCount={item.replies.total}
+            followersCount={item.followers.total}
+            groupSlug={this.props.groupSlug}
+          />
         ))}
       </Wrapper>
     );

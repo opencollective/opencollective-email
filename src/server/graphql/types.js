@@ -420,6 +420,26 @@ export const PostType = new GraphQLObjectType({
           };
         },
       },
+      followers: {
+        type: NodeListType,
+        async resolve(post, args) {
+          const query = {
+            where: { ParentPostId: post.PostId },
+            order: [['id', 'ASC']],
+            limit: args.limit,
+            offset: args.offset,
+          };
+          const count = await models.Member.count({ where: { PostId: post.PostId, role: 'FOLLOWER' } });
+          const rows = await post.getFollowers(args);
+          return {
+            total: count,
+            nodes: rows,
+            type: 'Post',
+            limit: args.limit,
+            offset: args.offset,
+          };
+        },
+      },
       slug: {
         type: GraphQLString,
         resolve(post) {

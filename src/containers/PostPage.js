@@ -2,14 +2,15 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
-import { FormattedMessage, defineMessages } from 'react-intl';
-import { get } from 'lodash';
 import withIntl from '../lib/withIntl';
-import PostList from './PostList';
-import getConfig from 'next/config';
-import Metadata from '../components/Post/Metadata';
+import Metadata from '../components/PostItem/Metadata';
 import Reply from '../components/Reply/ReplyItem';
-const { publicRuntimeConfig } = getConfig();
+import TopBar from '../components/TopBar';
+import Footer from '../components/Footer';
+import { Content } from '../styles/layout';
+import { PostBody } from '../styles/Post';
+import TitleWithActions from '../components/TitleWithActions';
+import env from '../env.frontend';
 
 class PostPage extends React.Component {
   static propTypes = {
@@ -23,19 +24,31 @@ class PostPage extends React.Component {
 
   render() {
     const post = this.props.data.Post;
-    const replyToEmail = `${post.slug}/posts/${post.PostId}@${publicRuntimeConfig.COLLECTIVE_DOMAIN}`;
+    if (!post) {
+      return <div>Loading</div>;
+    }
+    const followEmail = `${post.group.slug}/${post.PostId}/follow@${env.DOMAIN}?subject=${encodeURIComponent(
+      `Follow ${post.title}`,
+    )}&body=${encodeURIComponent('Just send this email to start following this thread')}`;
+    const replyEmail = `${post.group.slug}/${post.PostId}@${env.DOMAIN}?subject=${encodeURIComponent(
+      `Re: ${post.title}`,
+    )}&body=${encodeURIComponent('Enter your reply here.\n(please remove this text and your email signature if any)')}`;
+    const actions = [
+      { label: 'follow', mailto: followEmail, style: 'standard' },
+      { label: 'reply', mailto: replyEmail },
+    ];
     return (
       <div>
-        <h1>{post.group.name}</h1>
-        <h2>{post.title}</h2>
-        <Metadata user={post.user.name} createdAt={post.createdAt} />
-        <div dangerouslySetInnerHTML={{ __html: post.html }} />
-        {post.replies.nodes.map(post => (
-          <Reply post={post} />
-        ))}
-        <p>
-          To reply to this thread, just send an email to <a href={`mailto:${replyToEmail}`}>{replyToEmail}</a>
-        </p>
+        <TopBar group={post.group} />
+        <Content>
+          <TitleWithActions title={post.title} actions={actions} />
+          <Metadata user={post.user.name} createdAt={post.createdAt} followers={post.followers} />
+          <PostBody dangerouslySetInnerHTML={{ __html: post.html }} />
+          {post.replies.nodes.map((post, i) => (
+            <Reply post={post} key={i} />
+          ))}
+        </Content>
+        <Footer group={post.group} post={post} />
       </div>
     );
   }
@@ -52,10 +65,20 @@ const getDataQuery = gql`
       group {
         id
         name
+        slug
       }
       user {
         id
         name
+      }
+      followers {
+        total
+        nodes {
+          ... on User {
+            name
+            image
+          }
+        }
       }
       replies {
         total

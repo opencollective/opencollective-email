@@ -1,9 +1,13 @@
 import styled from 'styled-components';
 
-export const Wrapper = styled.div`
+export const ReplyWrapper = styled.div`
   background-color: white;
-  padding: 8px;
-  margin: 8px 0;
+  display: flex;
+  margin: 3rem 0 1rem 0;
+`;
+
+export const ContentWrapper = styled.div`
+  margin-left: 1rem;
 `;
 
 export const HeaderWrapper = styled.div`
@@ -26,11 +30,12 @@ export const Title = styled.a`
   }
 `;
 
-export const FooterWrapper = styled.div`
-  padding: 4px 0px 0px 0px;
-  font-size: 7pt;
+export const MetadataWrapper = styled.div`
+  padding: 0px;
+  font-size: 1.2rem;
+  line-height: 36px;
   color: #828282;
-  margin: 0;
+  margin: 0 0 1rem 0;
 `;
 
 export const FooterLink = styled.a.attrs({

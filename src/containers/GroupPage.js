@@ -2,13 +2,15 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { graphql } from 'react-apollo';
 import gql from 'graphql-tag';
-import { FormattedMessage, defineMessages } from 'react-intl';
-import { get } from 'lodash';
 import withIntl from '../lib/withIntl';
 import PostList from './PostList';
-import getConfig from 'next/config';
+import TopBar from '../components/TopBar';
+import Footer from '../components/Footer';
 
-const { publicRuntimeConfig } = getConfig();
+import { Content } from '../styles/layout';
+import TitleWithActions from '../components/TitleWithActions';
+
+import env from '../env.frontend';
 
 class GroupPage extends React.Component {
   static propTypes = {
@@ -23,14 +25,17 @@ class GroupPage extends React.Component {
   render() {
     const group = this.props.data.Group;
     if (!group) return <div>Loading</div>;
-    const groupEmail = `${group.slug}@${publicRuntimeConfig.COLLECTIVE_DOMAIN}`;
+    const groupEmail = `${group.slug}@${env.DOMAIN}`;
+    const actions = [{ label: '+ New Thread', mailto: groupEmail }];
+
     return (
       <div>
-        <h1>{group.name}</h1>
-        <p>
-          To start a new thread, just send an email to <a href={`mailto:${groupEmail}`}>{groupEmail}</a>
-        </p>
-        <PostList groupSlug={group.slug} posts={group.posts.nodes} />
+        <TopBar group={group} />
+        <Content>
+          <TitleWithActions title={group.name} actions={actions} />
+          <PostList groupSlug={group.slug} posts={group.posts.nodes} />
+        </Content>
+        <Footer group={group} />
       </div>
     );
   }
@@ -54,6 +59,9 @@ const getDataQuery = gql`
             user {
               id
               name
+            }
+            followers {
+              total
             }
             replies {
               total

@@ -33,7 +33,7 @@ export const previewText = ({ groupSlug }) => {
 };
 
 export const body = ({ groupSlug, confirmationUrl }) => {
-  const groupUrl = `${get(config, 'collective.website')}/${groupSlug}`;
+  const groupUrl = `${get(config, 'server.baseUrl')}/${groupSlug}`;
   return (
     <Layout>
       <p>

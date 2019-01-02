@@ -1,8 +1,6 @@
 import styled from 'styled-components';
 
-export const Wrapper = styled.div`
-  background-color: white;
-  padding: 8px;
+export const ListItemWrapper = styled.div`
   margin: 8px 0;
 `;
 
@@ -17,8 +15,9 @@ export const DateContainer = styled.div`
   color: #828282;
 `;
 
-export const Title = styled.a`
+export const Title = styled.h1`
   color: #000000;
+  font-size: 1.6rem;
   text-decoration: none;
   margin: 0px 0px;
   &:visited {
@@ -26,9 +25,9 @@ export const Title = styled.a`
   }
 `;
 
-export const FooterWrapper = styled.div`
-  padding: 4px 0px 0px 0px;
-  font-size: 7pt;
+export const MetadataWrapper = styled.div`
+  font-size: 1.2rem;
+  display: 'flex';
   color: #828282;
   margin: 0;
 `;

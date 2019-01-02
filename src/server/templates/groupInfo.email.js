@@ -13,7 +13,7 @@ export const previewText = ({ group, followers, posts }) => {
 
 export const body = ({ group, followers, posts }) => {
   const groupEmail = `${group.slug}@${get(config, 'server.domain')}`;
-  const groupUrl = `${get(config, 'collective.website')}/${group.slug}`;
+  const groupUrl = `${get(config, 'server.baseUrl')}/${group.slug}`;
   return (
     <Layout>
       <p>About the {group.slug} group:</p>
@@ -28,8 +28,8 @@ export const body = ({ group, followers, posts }) => {
         ))}
       </ul>
       <p>
-        You can view it online on {get(config, 'collective.website')}/{group.slug}. You can also easily manage it right
-        from your email client:
+        You can view it online on {get(config, 'server.baseUrl')}/{group.slug}. You can also easily manage it right from
+        your email client:
       </p>
       <h3>How to add people?</h3>
       <p>

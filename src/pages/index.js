@@ -41,7 +41,7 @@ export default () => (
         </li>
       ))}
     </ul>
-    <H1>{settings.title}</H1>
+    <H1>{settings.name}</H1>
     <H2>{settings.description}</H2>
     <p>{settings.longDescription}</p>
     <div className="buttons">

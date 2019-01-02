@@ -19,7 +19,7 @@ const nextConfig = {
   },
   publicRuntimeConfig: {
     // Will be available on both server and client
-    COLLECTIVE_DOMAIN: server.domain,
+    DOMAIN: server.domain,
     GRAPHQL_URL: `${server.baseUrl}/graphql/v1`,
   },
   webpack: config => {

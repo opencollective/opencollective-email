@@ -186,14 +186,11 @@ module.exports = (sequelize, DataTypes) => {
     const headers = {
       'Message-Id': `${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(config, 'server.domain')}`,
       References: `${groupSlug}/posts/${thread.PostId}@${get(config, 'server.domain')}`,
-      'Reply-To': `${groupEmail} <${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(
-        config,
-        'server.domain',
-      )}>`,
+      'Reply-To': `${groupEmail} <${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(config, 'server.domain')}>`,
     };
 
     let data;
-    // If it's a new thread, we reply to the sender to confirm that the topic has been created
+    // If it's a new thread,
     if (!parentPost) {
       const followers = await group.getFollowers();
       data = { groupSlug, followersCount: followers.length };
@@ -222,7 +219,6 @@ module.exports = (sequelize, DataTypes) => {
         headers,
       });
     }
-    console.log('>>> returning post', post.id);
     return post;
   };
   /**
@@ -246,6 +242,19 @@ module.exports = (sequelize, DataTypes) => {
     const promises = recipients.map(recipient => models.User.findOrCreate(recipient));
     const users = await Promise.all(promises);
     return Promise.all(users.map(user => user.follow({ PostId: this.PostId })));
+  };
+
+  Post.prototype.getUrl = async function() {
+    if (!this.path) {
+      const group = await models.Group.findById(this.GroupId);
+      if (this.ParentPostId) {
+        const parentPost = await Post.findById(this.ParentPostId);
+        this.path = `/${group.slug}/${parentPost.slug}`;
+      } else {
+        this.path = `/${group.slug}/${this.slug}`;
+      }
+    }
+    return `${get(config, 'server.baseUrl')}${this.path}`;
   };
 
   Post.associate = m => {
