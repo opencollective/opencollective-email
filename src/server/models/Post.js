@@ -149,7 +149,6 @@ module.exports = (sequelize, DataTypes) => {
         // we send an update about the group info
         const followers = await group.getFollowers();
         const posts = await group.getPosts();
-        console.log('>>> posts found', group.id, posts);
         await libemail.sendTemplate('groupInfo', { group, followers, posts }, userData.email);
       }
     }
@@ -178,7 +177,6 @@ module.exports = (sequelize, DataTypes) => {
       ParentPostId: parentPost && parentPost.PostId,
     };
     const post = await user.createPost(postData);
-    console.log('>>> POST CREATED <<<', post.id);
     const thread = parentPost ? parentPost : post;
     // We always add people explicitly mentioned in To or Cc as followers of the thread
     await thread.addFollowers(recipients);

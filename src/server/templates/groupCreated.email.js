@@ -17,8 +17,8 @@ export const body = ({ group, followers }) => {
     <Layout>
       <p>Welcome to your new email group {groupEmail}.</p>
       <ul>
-        {followers.map(follower => (
-          <li>{follower.name}</li>
+        {followers.map((follower, i) => (
+          <li key={i}>{follower.name}</li>
         ))}
       </ul>
       <p>

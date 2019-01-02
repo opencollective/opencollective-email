@@ -6,9 +6,10 @@ import config from 'config';
 
 export const db = {
   reset: async () => {
-    console.log('>>> reset db');
     try {
-      return await sequelize.sync({ force: true });
+      await sequelize.sync({ force: true });
+      console.log(`>>> ${config.server.database.database} db reset`);
+      return true;
     } catch (e) {
       console.error(
         `lib/test.js> cannot reset ${config.server.database.database} db in ${process.env.NODE_ENV} env.`,
