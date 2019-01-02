@@ -84,6 +84,16 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       paranoid: true,
+      indexes: [
+        {
+          unique: true,
+          fields: ['slug', 'status'],
+        },
+        {
+          unique: true,
+          fields: ['PostId', 'status'],
+        },
+      ],
       hooks: {
         beforeValidate: post => {
           post.slug = post.slug || slugify(post.title);

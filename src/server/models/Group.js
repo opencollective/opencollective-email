@@ -66,6 +66,16 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       paranoid: true,
+      indexes: [
+        {
+          unique: true,
+          fields: ['slug', 'status'],
+        },
+        {
+          unique: true,
+          fields: ['GroupId', 'status'],
+        },
+      ],
       hooks: {
         beforeValidate: group => {
           group.slug = group.slug || slugify(group.name);
@@ -89,7 +99,7 @@ module.exports = (sequelize, DataTypes) => {
     },
   );
 
-  Group.findBySlug = slug => Group.findOne({ where: { slug }, order: [['version', 'DESC']] });
+  Group.findBySlug = slug => Group.findOne({ where: { slug } });
 
   /**
    * Edits a group and saves a new version

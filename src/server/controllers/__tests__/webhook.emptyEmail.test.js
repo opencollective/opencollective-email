@@ -12,7 +12,7 @@ import { inspect } from 'util';
 const req = { body: { ...email1, 'stripped-text': '', 'stripped-html': '' } };
 const res = { send: () => {} };
 
-describe('webhook email', () => {
+describe('webhook empty email, existing user', () => {
   let sandbox, sendEmailSpy, user;
 
   beforeAll(db.reset);
@@ -26,12 +26,10 @@ describe('webhook email', () => {
 
   afterAll(() => sandbox.restore());
 
+  /*
   describe('follow group', async () => {
-    let group;
-    beforeAll(async () => {
-      group = await models.Group.create({ slug: 'testgroup', UserId: user.id });
-    });
     it('sends an email to :groupSlug/follow@domain to follow the group', async () => {
+      const group = await models.Group.create({ slug: 'testgroup', UserId: user.id });
       let membership = await models.Member.findOne({
         where: { UserId: user.id, GroupId: group.GroupId, role: 'FOLLOWER' },
       });
@@ -52,7 +50,7 @@ describe('webhook email', () => {
       expect(membership).notToBeNull;
     });
   });
-
+*/
   describe('sending first email in a thread', async () => {
     beforeAll(async () => {
       sendEmailSpy.resetHistory();
@@ -60,19 +58,20 @@ describe('webhook email', () => {
 
     it("creates a group but doesn't create a post", async () => {
       sendEmailSpy.resetHistory();
+      let groupsCount = await models.Group.count();
+      expect(groupsCount).toEqual(0);
       await webhook(req, res);
-      const groupsCount = await models.Group.count();
-      expect(groupsCount).toEqual(1);
+      const groups = await models.Group.findAll();
+      expect(groups.length).toEqual(1);
       const post = await models.Post.findOne();
       expect(post).toBeNull();
       expect(sendEmailSpy.callCount).toEqual(1);
       expect(sendEmailSpy.firstCall.args[1]).toEqual('New group email created');
-      await models.Group.truncate();
     });
 
     it('sends the group info if group already exists', async () => {
       sendEmailSpy.resetHistory();
-      const group = await models.Group.create({ slug: 'testgroup', UserId: user.id });
+      const group = await models.Group.create({ slug: 'testgroup2', version: 1, UserId: user.id });
       await models.Post.create({ GroupId: group.GroupId, title: 'post 1', UserId: user.id });
       await models.Post.create({ GroupId: group.GroupId, title: 'post 2', UserId: user.id });
       await models.Post.create({ GroupId: group.GroupId, title: 'post 3', UserId: user.id });
@@ -80,13 +79,18 @@ describe('webhook email', () => {
       await models.Post.create({ GroupId: group.GroupId, title: 'post 5', UserId: user.id });
       const resultList = await group.getPosts();
       expect(resultList.total).toEqual(5);
-      await webhook(req, res);
-      const posts = await models.Post.findAll({ where: { GroupId: group.id } });
-      expect(posts.length).toEqual(5);
+      await webhook(
+        {
+          body: {
+            ...req.body,
+            recipient: 'testgroup2@citizenspring.be',
+          },
+        },
+        res,
+      );
       expect(sendEmailSpy.callCount).toEqual(1);
-      expect(sendEmailSpy.firstCall.args[1]).toEqual('testgroup group info');
-      expect(sendEmailSpy.firstCall.args[3]).toContain('testgroup@citizenspring.be has 2 followers and 5 posts');
-      expect(sendEmailSpy.firstCall.args[3]).toMatch(/\/testgroup\/[1-9]/);
+      expect(sendEmailSpy.firstCall.args[1]).toEqual('testgroup2 group info');
+      expect(sendEmailSpy.firstCall.args[3]).toContain('testgroup2@citizenspring.be has 3 followers and 5 posts');
       await group.destroy();
       await models.Post.truncate();
     });

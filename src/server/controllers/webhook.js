@@ -89,6 +89,7 @@ export default async function webhook(req, res, next) {
     await handleFirstTimeUser(groupSlug, email);
     return res.send('ok');
   }
+
   await models.Post.createFromEmail(email);
   return res.send('ok');
 }
