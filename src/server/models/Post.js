@@ -3,7 +3,7 @@ import config from 'config';
 import slugify from 'limax';
 import { omit, get } from 'lodash';
 import libemail from '../lib/email';
-import { extractNamesAndEmailsFromString } from '../lib/utils';
+import { extractNamesAndEmailsFromString, isEmpty } from '../lib/utils';
 
 module.exports = (sequelize, DataTypes) => {
   const { models } = sequelize;
@@ -22,6 +22,15 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: 'CASCADE',
         allowNull: true,
       },
+      version: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 1,
+      },
+      status: {
+        type: DataTypes.STRING, // PUBLISHED | ARCHIVED | DRAFT | DELETED,
+        defaultValue: 'PUBLISHED',
+      },
       GroupId: {
         type: DataTypes.INTEGER,
         references: {
@@ -32,10 +41,15 @@ module.exports = (sequelize, DataTypes) => {
         onUpdate: 'CASCADE',
         allowNull: false,
       },
-      version: {
+      UserId: {
         type: DataTypes.INTEGER,
+        references: {
+          model: 'Users',
+          key: 'id',
+        },
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
         allowNull: false,
-        defaultValue: 1,
       },
       ParentPostId: {
         type: DataTypes.INTEGER,
@@ -46,18 +60,6 @@ module.exports = (sequelize, DataTypes) => {
         onDelete: 'SET NULL',
         onUpdate: 'CASCADE',
         allowNull: true,
-      },
-      uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
-      EmailThreadId: DataTypes.STRING,
-      UserId: {
-        type: DataTypes.INTEGER,
-        references: {
-          model: 'Users',
-          key: 'id',
-        },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-        allowNull: false,
       },
       slug: {
         type: DataTypes.STRING,
@@ -74,11 +76,24 @@ module.exports = (sequelize, DataTypes) => {
           }
         },
       },
+      uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
+      EmailThreadId: DataTypes.STRING,
       title: DataTypes.STRING,
       html: DataTypes.TEXT,
       text: DataTypes.TEXT,
     },
     {
+      paranoid: true,
+      indexes: [
+        {
+          unique: true,
+          fields: ['slug', 'status'],
+        },
+        {
+          unique: true,
+          fields: ['PostId', 'status'],
+        },
+      ],
       hooks: {
         beforeValidate: post => {
           post.slug = post.slug || slugify(post.title);
@@ -89,7 +104,7 @@ module.exports = (sequelize, DataTypes) => {
             action = 'EDIT';
           } else {
             post.PostId = post.id;
-            await post.update({ PostId: post.id });
+            await post.update({ PostId: post.id, slug: `${post.slug}-${post.PostId}` });
           }
           const activityData = {
             action,
@@ -122,8 +137,8 @@ module.exports = (sequelize, DataTypes) => {
    *   - sender and all recipients (To, Cc) added as followers of the Post
    */
   Post.createFromEmail = async email => {
-    const { groupSlug, tags, recipients } = libemail.parseHeaders(email);
-
+    const { groupSlug, tags, recipients, ParentPostId, PostId } = libemail.parseHeaders(email);
+    const groupEmail = `${groupSlug}@${get(config, 'server.domain')}`;
     const userData = extractNamesAndEmailsFromString(email.From)[0];
     const user = await models.User.findOrCreate(userData);
 
@@ -134,16 +149,30 @@ module.exports = (sequelize, DataTypes) => {
       group = await user.createGroup({ slug: groupSlug, name: groupSlug, tags });
       await group.addMembers(recipients, { role: 'ADMIN' });
       await group.addFollowers(recipients);
+      const followers = await group.getFollowers();
+      await libemail.sendTemplate('groupCreated', { group, followers }, user.email);
     } else {
-      // If the group exists and if the email is empty, we add the sender and recipients as followers of the group
-      if (email.subject.trim() === '' || email['stripped-text'].trim() === '') {
+      // If the group exists and if the email is empty,
+      if (isEmpty(email.subject) || isEmpty(email['stripped-text'])) {
+        // we add the sender and recipients as followers of the group
         await group.addFollowers([...recipients, userData]);
+        // we send an update about the group info
+        const followers = await group.getFollowers();
+        const posts = await group.getPosts();
+        await libemail.sendTemplate('groupInfo', { group, followers, posts }, user.email);
       }
     }
 
+    // if the content of the email is empty, we don't create any post
+    if (isEmpty(email['stripped-text'])) {
+      return;
+    }
+
     let EmailThreadId, parentPost;
-    // if it's a reply to a thread
-    if (email['In-Reply-To']) {
+    if (ParentPostId) {
+      parentPost = await models.Post.findOne({ where: { PostId: ParentPostId, status: 'PUBLISHED' } });
+    } else if (email['In-Reply-To']) {
+      // if it's a reply to a thread
       EmailThreadId = email['In-Reply-To'];
       parentPost = await models.Post.findByEmailThreadId(EmailThreadId);
     } else {
@@ -158,32 +187,39 @@ module.exports = (sequelize, DataTypes) => {
       ParentPostId: parentPost && parentPost.PostId,
     };
     const post = await user.createPost(postData);
-
     const thread = parentPost ? parentPost : post;
     // We always add people explicitly mentioned in To or Cc as followers of the thread
     await thread.addFollowers(recipients);
 
     const headers = {
-      'Message-Id': `${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(config, 'email.domain')}`,
-      References: `${groupSlug}/posts/${thread.PostId}@${get(config, 'email.domain')}`,
-      'Reply-To': `${group.name} <${groupSlug}+post:${post.PostId}@${get(config, 'email.domain')}>`,
+      'Message-Id': `${groupSlug}/${thread.PostId}/${post.PostId}@${get(config, 'server.domain')}`,
+      References: `${groupSlug}/${thread.PostId}@${get(config, 'server.domain')}`,
+      'Reply-To': `${groupEmail} <${groupSlug}/${thread.PostId}/${post.PostId}@${get(config, 'server.domain')}>`,
     };
 
     let data;
-    // If it's a new thread, we reply to the sender to confirm that the topic has been created
+    // If it's a new thread,
     if (!parentPost) {
       const followers = await group.getFollowers();
-      data = { group: group.name, followersCount: followers.length };
-      await libemail.sendTemplate('threadCreated', data, [user.email]);
+      data = { groupSlug, followersCount: followers.length, post };
+      await libemail.sendTemplate('threadCreated', data, user.email);
       // We send the new post to followers of the group + the recipients
       const unsubscribeLabel = `Click here to stop receiving new emails sent to ${group.slug}@${get(
         config,
-        'email.domain',
+        'server.domain',
       )}`;
-      data = { post: post.dataValues, unsubscribe: { label: unsubscribeLabel, data: { GroupId: group.id } } };
-      await libemail.sendTemplate('post', data, [...followers.map(u => u.email), ...recipients.map(r => r.email)], {
+      const subscribeLabel = `Click here to subscribe to replies to this new thread`;
+      data = {
+        post: post.dataValues,
+        subscribe: { label: subscribeLabel, data: { UserId: user.id, PostId: post.PostId } },
+        unsubscribe: { label: unsubscribeLabel, data: { UserId: user.id, GroupId: group.id } },
+      };
+      const cc = [...followers.map(u => u.email), ...recipients.map(r => r.email)];
+      console.log('>>> cc', cc);
+      await libemail.sendTemplate('post', data, groupEmail, {
         exclude: [user.email],
-        from: `${userData.name} <${groupSlug}@${get(config, 'email.domain')}>`,
+        from: `${userData.name} <${groupEmail}>`,
+        cc,
         headers,
       });
     } else {
@@ -191,9 +227,10 @@ module.exports = (sequelize, DataTypes) => {
       const followers = await thread.getFollowers();
       const unsubscribeLabel = `Click here to stop receiving new replies to this thread`;
       data = { post: post.dataValues, unsubscribe: { label: unsubscribeLabel, data: { PostId: thread.PostId } } };
-      await libemail.sendTemplate('post', data, [...followers.map(u => u.email), ...recipients.map(r => r.email)], {
+      await libemail.sendTemplate('post', data, groupEmail, {
         exclude: [user.email],
-        from: `${userData.name} <${groupSlug}@${get(config, 'email.domain')}>`,
+        from: `${userData.name} <${groupEmail}>`,
+        cc: [...followers.map(u => u.email), ...recipients.map(r => r.email)],
         headers,
       });
     }
@@ -202,13 +239,14 @@ module.exports = (sequelize, DataTypes) => {
   /**
    * Edits a post and saves a new version
    */
-  Post.prototype.edit = function(postData) {
+  Post.prototype.edit = async function(postData) {
     const newVersionData = {
       ...omit(this.dataValues, ['id']),
       ...postData,
       version: this.version + 1,
     };
-    return Post.create(newVersionData);
+    await this.update({ status: 'ARCHIVED' });
+    return await Post.create(newVersionData);
   };
 
   /**
@@ -219,6 +257,19 @@ module.exports = (sequelize, DataTypes) => {
     const promises = recipients.map(recipient => models.User.findOrCreate(recipient));
     const users = await Promise.all(promises);
     return Promise.all(users.map(user => user.follow({ PostId: this.PostId })));
+  };
+
+  Post.prototype.getUrl = async function() {
+    if (!this.path) {
+      const group = await models.Group.findById(this.GroupId);
+      if (this.ParentPostId) {
+        const parentPost = await Post.findById(this.ParentPostId);
+        this.path = `/${group.slug}/${parentPost.slug}`;
+      } else {
+        this.path = `/${group.slug}/${this.slug}`;
+      }
+    }
+    return `${get(config, 'server.baseUrl')}${this.path}`;
   };
 
   Post.associate = m => {

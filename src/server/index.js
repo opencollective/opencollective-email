@@ -1,5 +1,5 @@
 import '../env';
-
+import config from 'config';
 import path from 'path';
 
 import express from 'express';
@@ -12,10 +12,13 @@ const { PORT } = process.env;
 const port = parseInt(PORT, 10) || 3000;
 import routes from './routes';
 import pages from './pages';
+// jest.setup.js
+import { nextConfig } from '../next.config';
 
 const nextApp = next({
   dir: path.dirname(__dirname),
   dev: process.env.NODE_ENV !== 'production',
+  conf: nextConfig,
 });
 const pagesHandler = pages.getRequestHandler(nextApp);
 
@@ -27,6 +30,12 @@ nextApp.prepare().then(() => {
     if (err) {
       throw err;
     }
-    logger.info(`> Ready on http://localhost:${port}`);
+    logger.info(
+      `> Connecting to pgsql://${config.server.database.options.host}:${config.server.database.port || 5432}/${
+        config.server.database.database
+      }`,
+    );
+    logger.info(`> GraphQL server ready on http://localhost:${port}/graphql/v1`);
+    logger.info(`> Web server ready on http://localhost:${port}`);
   });
 });

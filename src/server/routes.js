@@ -14,13 +14,11 @@ export default server => {
 
   server.use('*', authenticateUser); // populate req.remoteUser if JWT token provided in the request
 
-  server.post('/webhook', (req, res, next) => {
-    console.log('/webhook', req.query, JSON.stringify(req.body));
-    return res.send(req.body);
-  });
-
+  server.post('/webhook', controllers.webhook);
   server.get('/api/publishEmail', controllers.api.publishEmail);
+  server.get('/api/follow', controllers.api.follow);
   server.get('/api/unfollow', controllers.api.unfollow);
+  server.get('/api/reset', controllers.api.reset);
 
   server.get('/favicon.*', maxAge(300000), (req, res) => {
     return res.sendFile(path.join(__dirname, '../static/images/favicon.png'));

@@ -1,0 +1,37 @@
+{
+  "development": {
+    "database": "opencollective-email",
+    "username": "opencollective",
+    "password": "",
+    "host": "127.0.0.1",
+    "dialect": "postgres"
+  },
+  "circleci": {
+    "database": "circle_test",
+    "username": "ubuntu",
+    "password": "",
+    "host": "localhost",
+    "protocol": "postgres",
+    "dialect": "postgres"
+  },
+  "staging": {
+    "use_env_variable": "PG_URL",
+    "dialect": "postgres",
+    "ssl": true,
+    "dialectOptions": {
+      "ssl": {
+        "require": true
+      }
+    }
+  },
+  "production": {
+    "use_env_variable": "PG_URL",
+    "dialect": "postgres",
+    "ssl": true,
+    "dialectOptions": {
+      "ssl": {
+        "require": true
+      }
+    }
+  }
+}

@@ -37,7 +37,7 @@ export const NodeInterfaceType = new GraphQLInterfaceType({
   name: 'NodeInterface',
   description: 'Node interface used by NodeList so that we can always return a Node',
   resolveType: node => {
-    switch (node.__type) {
+    switch (node.constructor.name) {
       case 'Post':
         return PostType;
 
@@ -86,6 +86,18 @@ export const UserType = new GraphQLObjectType({
         type: GraphQLString,
         resolve(user) {
           return user.lastName;
+        },
+      },
+      name: {
+        type: GraphQLString,
+        resolve(user) {
+          return user.name;
+        },
+      },
+      createdAt: {
+        type: GraphQLString,
+        resolve(user) {
+          return user.createdAt;
         },
       },
       email: {
@@ -177,7 +189,7 @@ export const UserType = new GraphQLObjectType({
           return {
             total: count,
             nodes: rows,
-            type: 'member',
+            type: 'Member',
             limit: args.limit,
             offset: args.offset,
           };
@@ -196,7 +208,7 @@ export const UserType = new GraphQLObjectType({
           return {
             total: count,
             nodes: rows,
-            type: 'post',
+            type: 'Post',
             limit: args.limit,
             offset: args.offset,
           };
@@ -269,23 +281,24 @@ export const GroupType = new GraphQLObjectType({
           return models.User.findById(group.UserId);
         },
       },
-      posts: {
+      followers: {
         type: NodeListType,
         async resolve(group, args) {
-          const query = {
-            where: { GroupId: group.id },
-            order: [[args.orderBy, args.orderDirection]],
-            limit: args.limit,
-            offset: args.offset,
-          };
-          const { count, rows } = await models.Post.findAndCountAll(query);
+          const count = await models.Member.count({ where: { GroupId: group.GroupId, role: 'FOLLOWER' } });
+          const rows = await group.getFollowers(args);
           return {
             total: count,
             nodes: rows,
-            type: 'post',
+            type: 'Group',
             limit: args.limit,
             offset: args.offset,
           };
+        },
+      },
+      posts: {
+        type: NodeListType,
+        async resolve(group, args) {
+          return group.getPosts(args);
         },
       },
       version: {
@@ -307,10 +320,16 @@ export const GroupType = new GraphQLObjectType({
           return {
             total: count,
             nodes: rows,
-            type: 'group',
+            type: 'Group',
             limit: args.limit,
             offset: args.offset,
           };
+        },
+      },
+      slug: {
+        type: GraphQLString,
+        resolve(group) {
+          return group.slug;
         },
       },
       name: {
@@ -390,10 +409,49 @@ export const PostType = new GraphQLObjectType({
           return {
             total: count,
             nodes: rows,
-            type: 'post',
+            type: 'Post',
             limit: args.limit,
             offset: args.offset,
           };
+        },
+      },
+      replies: {
+        type: NodeListType,
+        async resolve(post, args) {
+          const query = {
+            where: { ParentPostId: post.PostId },
+            order: [['id', 'ASC']],
+            limit: args.limit,
+            offset: args.offset,
+          };
+          const { count, rows } = await models.Post.findAndCountAll(query);
+          return {
+            total: count,
+            nodes: rows,
+            type: 'Post',
+            limit: args.limit,
+            offset: args.offset,
+          };
+        },
+      },
+      followers: {
+        type: NodeListType,
+        async resolve(post, args) {
+          const count = await models.Member.count({ where: { PostId: post.PostId, role: 'FOLLOWER' } });
+          const rows = await post.getFollowers(args);
+          return {
+            total: count,
+            nodes: rows,
+            type: 'Post',
+            limit: args.limit,
+            offset: args.offset,
+          };
+        },
+      },
+      slug: {
+        type: GraphQLString,
+        resolve(post) {
+          return post.slug;
         },
       },
       title: {
@@ -402,10 +460,22 @@ export const PostType = new GraphQLObjectType({
           return post.title;
         },
       },
-      body: {
+      text: {
         type: GraphQLString,
         resolve(post) {
-          return post.body;
+          return post.text;
+        },
+      },
+      html: {
+        type: GraphQLString,
+        resolve(post) {
+          return post.html;
+        },
+      },
+      createdAt: {
+        type: GraphQLString,
+        resolve(post) {
+          return new Date(post.createdAt);
         },
       },
     };

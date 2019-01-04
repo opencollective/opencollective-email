@@ -12,6 +12,13 @@ module.exports = (sequelize, DataTypes) => {
       lastName: DataTypes.STRING,
       name: {
         type: DataTypes.VIRTUAL,
+        get() {
+          if (this.getDataValue('name')) return this.getDataValue('name');
+          const nameParts = [];
+          if (this.getDataValue('firstName')) nameParts.push(this.getDataValue('firstName'));
+          if (this.getDataValue('lastName')) nameParts.push(this.getDataValue('lastName'));
+          return nameParts.length > 0 ? nameParts.join(' ') : 'anonymous';
+        },
       },
       email: {
         type: DataTypes.STRING,
@@ -43,6 +50,7 @@ module.exports = (sequelize, DataTypes) => {
       languages: DataTypes.ARRAY(DataTypes.STRING),
     },
     {
+      paranoid: true,
       hooks: {
         beforeValidate: user => {
           if (user.name && !user.firstName) {
@@ -53,6 +61,10 @@ module.exports = (sequelize, DataTypes) => {
               user.firstName = user.name.substr(0, spaceIndex);
               user.lastName = user.name.substr(spaceIndex + 1);
             }
+          }
+          if (!user.firstName) {
+            const account = user.email.substr(0, user.email.indexOf('@'));
+            user.firstName = account.split('.')[0];
           }
         },
       },
@@ -80,7 +92,7 @@ module.exports = (sequelize, DataTypes) => {
         {
           shortcode: user.token,
         },
-        [user.email],
+        user.email,
       );
       return user;
     }
@@ -171,7 +183,7 @@ module.exports = (sequelize, DataTypes) => {
         role: 'ADMIN',
       },
       {
-        PostId: post.id,
+        PostId: post.ParentPostId || post.id, // we only follow the thread
         UserId: this.id,
         role: 'FOLLOWER',
       },

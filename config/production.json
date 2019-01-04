@@ -1,0 +1,35 @@
+{
+  "collective": {
+    "name": "Citizen Spring 🌱",
+    "slug": "citizenspring"
+  },
+  "email": {
+    "from": "CitizenSpring🌱 <info@citizenspring.be>",
+    "mailgun": {
+      "user": "",
+      "password": "",
+      "apiKey": ""
+    }
+  },
+  "server": {
+    "domain": "citizenspring.be",
+    "baseUrl": "http://citizenspring.be",
+    "database": {
+      "options": {
+        "port": 5432,
+        "dialect": "postgres",
+        "protocol": "postgres",
+        "logging": true,
+        "pool": {
+          "min": 10,
+          "max": 50,
+          "acquire": 60000
+        },
+        "dialectOptions": {
+          "ssl": false
+        },
+        "benchmark": true
+      }
+    }
+  }
+}

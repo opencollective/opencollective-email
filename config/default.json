@@ -1,12 +1,10 @@
 {
   "collective": {
     "name": "Citizen Spring 🌱",
-    "slug": "citizenspring",
-    "domain": "citizenspring.be",
-    "website": "https://citizenspring.be"
+    "slug": "citizenspring"
   },
   "email": {
-    "from": "CitizenSpring🌱 <citizenspring@opencollective.eu>",
+    "from": "CitizenSpring🌱 <info@localhost>",
     "mailgun": {
       "user": "",
       "password": "",
@@ -14,6 +12,8 @@
     }
   },
   "server": {
+    "domain": "localhost",
+    "baseUrl": "http://localhost:3000",
     "database": {
       "database": "citizenspring",
       "username": "",

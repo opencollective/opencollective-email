@@ -1,6 +1,8 @@
 'use strict';
 import slugify from 'limax';
 import { omit } from 'lodash';
+import debugLib from 'debug';
+const debug = debugLib('group');
 
 module.exports = (sequelize, DataTypes) => {
   const { models, Op } = sequelize;
@@ -25,6 +27,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 1,
+      },
+      status: {
+        type: DataTypes.STRING, // PUBLISHED | ARCHIVED | DRAFT | DELETED,
+        defaultValue: 'PUBLISHED',
       },
       uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
       UserId: {
@@ -59,6 +65,17 @@ module.exports = (sequelize, DataTypes) => {
       settings: DataTypes.JSON,
     },
     {
+      paranoid: true,
+      indexes: [
+        {
+          unique: true,
+          fields: ['slug', 'status'],
+        },
+        {
+          unique: true,
+          fields: ['GroupId', 'status'],
+        },
+      ],
       hooks: {
         beforeValidate: group => {
           group.slug = group.slug || slugify(group.name);
@@ -82,18 +99,42 @@ module.exports = (sequelize, DataTypes) => {
     },
   );
 
-  Group.findBySlug = slug => Group.findOne({ where: { slug }, order: [['version', 'DESC']] });
+  Group.findBySlug = slug => Group.findOne({ where: { slug } });
 
   /**
    * Edits a group and saves a new version
    */
-  Group.prototype.edit = function(groupData) {
+  Group.prototype.edit = async function(groupData) {
     const newVersionData = {
       ...omit(this.dataValues, ['id']),
       ...groupData,
       version: this.version + 1,
+      status: 'PUBLISHED',
     };
-    return Group.create(newVersionData);
+    await this.update({ status: 'ARCHIVED' });
+    return await Group.create(newVersionData);
+  };
+
+  Group.prototype.getPosts = async function(options = {}) {
+    const query = {
+      where: {
+        GroupId: this.GroupId,
+        ParentPostId: { [Op.is]: null },
+        status: 'PUBLISHED',
+      },
+      order: [['id', 'DESC']],
+    };
+    if (options.limit) query.limit = options.limit;
+    if (options.offset) query.offset = options.offset;
+    debug('getPosts', this.slug, query);
+    const { count, rows } = await models.Post.findAndCountAll(query);
+    return {
+      total: count,
+      nodes: rows,
+      type: 'Post',
+      limit: options.limit,
+      offset: options.offset,
+    };
   };
 
   /**

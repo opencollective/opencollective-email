@@ -20,15 +20,33 @@ export default class MyDocument extends Document {
               height: 100%;
               width: 100%;
             }
-
+            @media(max-width: 600px) {
+              html {
+                font-size: 55%;
+              }
+            }
+            #nprogress {
+              position: absolute;
+              top: 38px;
+              left: 0;
+              height: 5px;
+              width: 100%;
+            }
+            #nprogress .bar {
+              z-index: 2001;
+              height: 4px;
+              background: rgba(57,136,251);
+            }
+            #nprogress .spinner {
+              display: none;
+            }
+                      
             body {
               font-family: "Inter UI", sans-serif;
               font-size: 1.4rem;
               height: 100%;
               margin: 0;
               padding: 0;
-              background: url(${settings.background}) no-repeat bottom center;
-              background-size: cover;
               line-height: 1.3;
             }
 
@@ -43,13 +61,7 @@ export default class MyDocument extends Document {
             h2 {
               font-weight: 300;
             }
-            .page {
-              max-width: 960px;
-              width: 100%;
-              margin: 2rem auto;
-              padding: 2rem;
-              background: rgba(255, 255, 255, 0.8);
-            }
+
             input, button {
               font-size: 2rem;
             }
@@ -95,9 +107,7 @@ export default class MyDocument extends Document {
           `}</style>
         </Head>
         <body className="custom_class">
-          <div className="page">
-            <Main />
-          </div>
+          <Main />
           <NextScript />
         </body>
       </html>

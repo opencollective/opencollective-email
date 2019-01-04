@@ -42,8 +42,8 @@ describe('controllers.api', () => {
       query: { groupSlug: 'testgroup', token },
     };
     const res = {
-      location: path => {
-        expect(path).toMatch(/^\/testgroup\/threads\/[0-9]+/);
+      redirect: path => {
+        expect(path).toMatch(/^\/testgroup\/[0-9]+/);
       },
     };
     try {

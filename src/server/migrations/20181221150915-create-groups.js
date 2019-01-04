@@ -2,72 +2,81 @@
 module.exports = {
   up: (queryInterface, DataTypes) => {
     return queryInterface
-      .createTable('Groups', {
-        id: {
-          allowNull: false,
-          autoIncrement: true,
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-        },
-        GroupId: {
-          type: DataTypes.INTEGER,
-          references: {
-            model: 'Groups',
-            key: 'id',
+      .createTable(
+        'Groups',
+        {
+          id: {
+            allowNull: false,
+            autoIncrement: true,
+            primaryKey: true,
+            type: DataTypes.INTEGER,
           },
-          onDelete: 'SET NULL',
-          onUpdate: 'CASCADE',
-          allowNull: true,
-        },
-        version: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-        },
-        uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
-        name: {
-          type: DataTypes.STRING,
-        },
-        description: {
-          type: DataTypes.STRING,
-        },
-        UserId: {
-          type: DataTypes.INTEGER,
-          references: {
-            model: 'Users',
-            key: 'id',
+          GroupId: {
+            type: DataTypes.INTEGER,
+            references: {
+              model: 'Groups',
+              key: 'id',
+            },
+            onDelete: 'SET NULL',
+            onUpdate: 'CASCADE',
+            allowNull: true,
           },
-          onDelete: 'SET NULL',
-          onUpdate: 'CASCADE',
-          allowNull: false,
+          version: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+          },
+          status: {
+            type: DataTypes.STRING, // PUBLISHED | ARCHIVED | DRAFT | DELETED
+          },
+          uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
+          UserId: {
+            type: DataTypes.INTEGER,
+            references: {
+              model: 'Users',
+              key: 'id',
+            },
+            onDelete: 'SET NULL',
+            onUpdate: 'CASCADE',
+            allowNull: false,
+          },
+          slug: {
+            type: DataTypes.STRING,
+          },
+          name: {
+            type: DataTypes.STRING,
+          },
+          description: {
+            type: DataTypes.STRING,
+          },
+          image: {
+            type: DataTypes.STRING,
+          },
+          color: {
+            type: DataTypes.STRING,
+          },
+          settings: {
+            type: DataTypes.JSON,
+          },
+          createdAt: {
+            allowNull: false,
+            type: DataTypes.DATE,
+          },
+          updatedAt: {
+            allowNull: false,
+            type: DataTypes.DATE,
+          },
         },
-        slug: {
-          type: DataTypes.STRING,
+        {
+          paranoid: true,
         },
-        image: {
-          type: DataTypes.STRING,
-        },
-        color: {
-          type: DataTypes.STRING,
-        },
-        settings: {
-          type: DataTypes.JSON,
-        },
-        createdAt: {
-          allowNull: false,
-          type: DataTypes.DATE,
-        },
-        updatedAt: {
-          allowNull: false,
-          type: DataTypes.DATE,
-        },
-      })
+      )
       .then(() =>
-        queryInterface.addIndex('Groups', ['slug', 'version'], {
+        queryInterface.addIndex('Groups', ['slug', 'status'], {
           indicesType: 'UNIQUE',
         }),
       )
       .then(() =>
-        queryInterface.addIndex('Groups', ['GroupId', 'version'], {
+        queryInterface.addIndex('Groups', ['GroupId', 'status'], {
           indicesType: 'UNIQUE',
         }),
       );

@@ -1,9 +1,7 @@
 {
   "collective": {
     "name": "COLLECTIVE_NAME",
-    "slug": "COLLECTIVE_SLUG",
-    "domain": "COLLECTIVE_DOMAIN",
-    "website": "COLLECTIVE_WEBSITE"
+    "slug": "COLLECTIVE_SLUG"
   },
   "email": {
     "from": "EMAIL_FROM",
@@ -14,6 +12,8 @@
     }
   },
   "server": {
+    "domain": "DOMAIN",
+    "baseUrl": "BASE_URL",
     "database": {
       "database": "PG_DATABASE",
       "username": "PG_USERNAME",

@@ -1,8 +1,27 @@
 {
-    "presets": [
-      "next/babel"
-    ],
-    "plugins": [
-      "lodash"
+  "presets": [
+    [
+      "next/babel",
+      {
+        "preset-env": {
+          "modules": "auto"
+        }
+      }
     ]
+  ],
+  "plugins": [
+    "lodash",
+    [
+      "react-intl",
+      {
+        "messagesDir": "./build/messages/"
+      }
+    ],
+    "styled-components"
+  ],
+  "env": {
+    "development": {
+      "compact": false
+    }
   }
+}

@@ -1,9 +1,11 @@
 {
-  "title": "#CitizenSpring🌱",
+  "name": "#CitizenSpring🌱",
   "description": "Citizens coming together to offer an alternative to political parties in the upcoming elections in Belgium",
+  "longDescription": "This is the global coordination group at the Belgian level. Join the movement!",
   "website": "https://citizenspring.be",
-  "logo": "static/images/icon.png",
-  "background": "static/images/background.jpg",
+  "logo": "/static/images/icon.png",
+  "background": "/static/images/background.jpg",
+  "code_of_conduct": "https://docs.google.com/document/d/e/2PACX-1vQ-3RuyMRpHv1bUXePM-HlPks06v0y_vJMv-bAKeyEgu0durjta9ppeTfRCrQrK4amTD15-XB49Cyhb/pub",
   "home": {
     "toplinks": [
       {
@@ -17,8 +19,8 @@
     ],
     "buttons": [
       {
-        "label": "Join a Working Group",
-        "url": "https://docs.google.com/spreadsheets/d/1YHUalDZ_cuiU7gxr2zDhoVoILkCTey19m9ZW2F600OI/edit?usp=sharing"
+        "label": "Join us!",
+        "url": "https://goo.gl/forms/r2R8vFzcwrpKJaUp1"
       },
       {
         "label": "Join our Facebook Group",

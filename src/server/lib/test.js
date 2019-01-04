@@ -5,14 +5,19 @@ import { sequelize } from '../models';
 import config from 'config';
 
 export const db = {
-  reset: () =>
-    sequelize.sync({ force: true }).catch(e => {
+  reset: async () => {
+    try {
+      await sequelize.sync({ force: true });
+      console.log(`>>> ${config.server.database.database} db reset`);
+      return true;
+    } catch (e) {
       console.error(
         `lib/test.js> cannot reset ${config.server.database.database} db in ${process.env.NODE_ENV} env.`,
         e,
       );
       process.exit(1);
-    }),
+    }
+  },
   close: () => sequelize.close(),
 };
 

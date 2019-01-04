@@ -5,33 +5,62 @@ const debug = debugLib('email');
 import { get, uniq } from 'lodash';
 import nodemailer from 'nodemailer';
 import config from 'config';
-import { extractInboxAndTagsFromEmailAddress, extractNamesAndEmailsFromString } from '../lib/utils';
+import { parseEmailAddress, extractNamesAndEmailsFromString } from '../lib/utils';
 import { createJwt } from '../lib/auth';
+import path from 'path';
+import fs from 'fs';
 
-import * as ShortCode from '../templates/shortcode.email.jsx';
-import * as CreateUser from '../templates/createUser.email.jsx';
-import * as ThreadCreated from '../templates/threadCreated.email.jsx';
-import * as Post from '../templates/post.email.jsx';
+import * as shortcode from '../templates/shortcode.email.js';
+import * as confirmEmail from '../templates/confirmEmail.email.js';
+import * as confirmJoinGroup from '../templates/confirmJoinGroup.email.js';
+import * as followGroup from '../templates/followGroup.email.js';
+import * as followThread from '../templates/followThread.email.js';
+import * as groupCreated from '../templates/groupCreated.email.js';
+import * as groupInfo from '../templates/groupInfo.email.js';
+import * as threadCreated from '../templates/threadCreated.email.js';
+import * as post from '../templates/post.email.js';
 import models from '../models';
 
 const templates = {
-  shortcode: ShortCode,
-  createUser: CreateUser,
-  threadCreated: ThreadCreated,
-  post: Post,
+  shortcode,
+  confirmEmail,
+  confirmJoinGroup,
+  followGroup,
+  followThread,
+  threadCreated,
+  post,
+  groupCreated,
+  groupInfo,
 };
 
 const libemail = {};
 
+console.log(`> Using mailgun account ${get(config, 'email.mailgun.user')}`);
+
 const generateCustomTemplate = (options, data) => {
-  let unsubscribeSnippet = '';
+  let subscribeSnippet = '',
+    unsubscribeSnippet = '',
+    previewText = '';
+  if (data.subscribe) {
+    subscribeSnippet = `
+      <div class="footer" style="margin-top: 2rem; font-size: 12px; text-decoration: none;">
+        <a href="${data.subscribe.url}">
+          ${data.subscribe.label}
+        </a>
+      </div>`;
+  }
   if (data.unsubscribe) {
     unsubscribeSnippet = `
-      <div class="footer" style="margin-top: 2rem; font-size: 10px;">
+      <div class="footer" style="margin-top: 2rem; font-size: 12px; text-decoration: none;">
         <a href="${data.unsubscribe.url}">
           ${data.unsubscribe.label}
         </a>
       </div>`;
+  }
+  if (options.previewText) {
+    previewText = `<span style="display:none;color:#FFFFFF;margin:0;padding:0;font-size:1px;line-height:1px;">
+      ${options.previewText}
+    </span>`;
   }
   return `
     <!doctype html>
@@ -40,8 +69,10 @@ const generateCustomTemplate = (options, data) => {
         <title>${options.title}</title>
       </head>
       <body>
-        ${options.bodyContent}
-        ${unsubscribeSnippet}
+      ${previewText}
+      ${options.bodyContent}
+      ${subscribeSnippet}
+      ${unsubscribeSnippet}
       </body>
     </html>
   `;
@@ -49,74 +80,129 @@ const generateCustomTemplate = (options, data) => {
 
 libemail.generateUnsubscribeUrl = async function(email, where) {
   const user = await models.User.findByEmail(email);
+  if (!user) {
+    console.warn(`Cannot generate unsubscribe url for ${email}: user not found`);
+    return null;
+  }
   where.role = 'FOLLOWER';
   where.UserId = user.id;
-  const members = await models.Member.findAll();
   const member = await models.Member.findOne({ where });
   if (!member) {
     console.warn('libemail.generateUnsubscribeUrl: no membership found for', where);
     return;
   }
   const tokenData = {
-    MemberId: member.id,
+    data: { MemberId: member.id },
   };
   const token = createJwt('unfollow', tokenData, '7d');
-  return `${config.website}/api/unfollow?token=${token}`;
+  return `${config.server.baseUrl}/api/unfollow?token=${token}`;
 };
 
+libemail.generateSubscribeUrl = async function(email, memberData) {
+  const user = await models.User.findByEmail(email);
+  if (!user) {
+    console.warn(`Cannot generate subscribe url for ${email}: user not found`);
+    return null;
+  }
+  memberData.role = 'FOLLOWER';
+  memberData.UserId = user.id;
+  const token = createJwt('follow', { data: memberData }, '7d');
+  return `${config.server.baseUrl}/api/follow?token=${token}`;
+};
+
+/**
+ * returns headers of an email object as sent by mailgun
+ * @POST { sender: email, groupSlug, tags: [string], recipients: [{name, email}], ParentPostId, PostId }
+ */
 libemail.parseHeaders = function(email) {
   if (!email.sender) {
     throw new Error('libemail.parseHeaders: invalid email object');
   }
   const sender = email.sender.toLowerCase();
   const recipient = email.recipient || email.recipients; // mailgun's inconsistent api
-  const { inbox, tags } = extractInboxAndTagsFromEmailAddress(recipient);
+  const { groupSlug, tags, ParentPostId, PostId } = parseEmailAddress(recipient);
   const recipients = extractNamesAndEmailsFromString(`${email.To}, ${email.Cc}`).filter(r => {
-    return r.email.toLowerCase() !== sender && r.email.toLowerCase() !== recipient.toLowerCase();
+    return r.email && r.email.toLowerCase() !== sender && r.email.toLowerCase() !== recipient.toLowerCase();
   });
-  return { sender, groupSlug: inbox, tags, recipients };
+  return { sender, groupSlug, tags, recipients, ParentPostId, PostId };
 };
 
 /**
  * Generate template with data and send html email to recipients
  * @pre: recipients: array(email)
  */
-libemail.sendTemplate = async function(template, data, recipients, options = {}) {
+libemail.sendTemplate = async function(template, data, to, options = {}) {
   if (!templates[template]) {
     throw new Error(`Template ${template} not found`);
   }
-  let uniqueRecipients = uniq(recipients.map(r => r.trim().toLowerCase()));
-  if (options.exclude) {
-    uniqueRecipients = uniqueRecipients.filter(email => !options.exclude.includes(email));
+  if ((options.exclude || []).includes(to)) {
+    throw new Error(`Recipient is in the exclude list (${to})`);
   }
+  const cc = uniq((options.cc || []).map(r => r.trim().toLowerCase())).filter(email => {
+    if (options.exclude && options.exclude.includes(email)) {
+      console.info(`Excluding ${email}`);
+      return false;
+    }
+
+    // If for some reason the sender sends an email to the group and cc the group as well,
+    // we ignore this user error
+    if (email.substr(email.indexOf('@') + 1) === get(config, 'server.domain')) {
+      const { groupSlug } = parseEmailAddress(email);
+      if (to.substr(0, to.indexOf('@')) === groupSlug) {
+        console.info(`Skipping ${email}`);
+        return false;
+      }
+    }
+    return true;
+  });
   const subject = templates[template].subject(data);
-  debug(
-    'Sending email to',
-    uniqueRecipients,
-    subject,
-    'using template',
-    template,
-    'with data',
-    data.dataValues ? data.dataValues : data,
-  );
+  debug('Sending', template, 'email to', to, 'cc', cc, subject);
+  if (process.env.DEBUG && process.env.DEBUG.match(/data/)) {
+    debug('with data', data);
+  }
+
   const templateComponent = React.createElement(templates[template].body, data);
 
-  const sendEmail = async function(emailAddr) {
+  const prepareEmailForRecipient = async function(recipientEmailAddr) {
     // we generate a unique unsubscribe url per recipient
     if (get(data, 'unsubscribe.data')) {
-      data.unsubscribe.url = await libemail.generateUnsubscribeUrl(emailAddr, data.unsubscribe.data);
+      data.unsubscribe.url = await libemail.generateUnsubscribeUrl(recipientEmailAddr, data.unsubscribe.data);
     }
+    if (get(data, 'subscribe.data')) {
+      data.subscribe.url = await libemail.generateSubscribeUrl(recipientEmailAddr, data.subscribe.data);
+    }
+    const previewText = templates[template].previewText && templates[template].previewText(data);
     const text = templates[template].text && templates[template].text(data);
-    const html = Oy.renderTemplate(templateComponent, { title: subject }, opts => generateCustomTemplate(opts, data));
-    return libemail.send(emailAddr, subject, text, html, options);
+    const html = Oy.renderTemplate(templateComponent, { title: subject, previewText }, opts =>
+      generateCustomTemplate(opts, data),
+    );
+    return { text, html };
   };
 
-  return await Promise.all(uniqueRecipients.map(sendEmail));
+  const sendEmailWithIndividualUnsubscribeUrl = async function(to, cc, email) {
+    const { text, html } = await prepareEmailForRecipient(email);
+    const emailOpts = {
+      ...options,
+      template,
+      cc,
+    };
+    return libemail.send(to, subject, text, html, emailOpts);
+  };
+
+  // note: the goal here is to send an email to the group email and sending in cc to each recipient
+  // with each their own unsubscribe one click link despite the fact that we are sending to the group email
+  if (cc.length > 0) {
+    return await Promise.all(
+      cc.map(async ccEmail => await sendEmailWithIndividualUnsubscribeUrl(to, ccEmail, ccEmail)),
+    );
+  } else {
+    return await sendEmailWithIndividualUnsubscribeUrl(to, null, to);
+  }
 };
 
 libemail.send = async function(to, subject, text, html, options = {}) {
   if (!to || !to.match(/[^@]+@.+\..+/)) {
-    console.warning(`libemail.send: invalid to email address: ${to}, skipping`);
+    console.warn(`libemail.send: invalid to email address: ${to}, skipping`);
     return;
   }
   if (options.exclude && options.exclude.includes(to)) {
@@ -124,7 +210,12 @@ libemail.send = async function(to, subject, text, html, options = {}) {
     return;
   }
   let transport;
-  if (get(config, 'email.mailgun.password')) {
+  if (process.env.MAILDEV) {
+    transport = {
+      ignoreTLS: true,
+      port: 1025,
+    };
+  } else if (get(config, 'email.mailgun.password')) {
     transport = {
       service: 'Mailgun',
       auth: {
@@ -132,13 +223,14 @@ libemail.send = async function(to, subject, text, html, options = {}) {
         pass: get(config, 'email.mailgun.password'),
       },
     };
-  } else if (process.env.MAILDEV) {
-    transport = {
-      ignoreTLS: true,
-      port: 1025,
-    };
   }
 
+  if (process.env.DEBUG && process.env.DEBUG.match(/email/)) {
+    const recipientSlug = to.substr(0, to.indexOf('@'));
+    const filepath = path.resolve(`/tmp/${options.template}.${recipientSlug}.html`);
+    fs.writeFileSync(filepath, html);
+    debug('preview:', filepath);
+  }
   if (!transport) {
     console.warn('lib/email: please configure mailgun or run a local test mail server (see README).');
     return;
@@ -154,7 +246,7 @@ libemail.send = async function(to, subject, text, html, options = {}) {
   // only attach tag in production to keep data clean
   const tag = config.env === 'production' ? options.tag : 'internal';
   const headers = { 'X-Mailgun-Tag': tag, 'X-Mailgun-Dkim': 'yes', ...options.headers };
-
+  debug('send from:', from, 'to:', to, 'cc:', cc, JSON.stringify(headers));
   return await mailgun.sendMail({
     from,
     cc,
