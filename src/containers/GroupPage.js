@@ -33,7 +33,7 @@ class GroupPage extends React.Component {
         <TopBar group={group} />
         <Content>
           <TitleWithActions title={group.name} actions={actions} />
-          <PostList groupSlug={group.slug} posts={group.posts.nodes} />
+          <PostList groupSlug={group.slug} posts={group.posts} />
         </Content>
         <Footer group={group} />
       </div>

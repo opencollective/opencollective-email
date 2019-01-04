@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import PropTypes from '../lib/propTypes';
 import styled from 'styled-components';
 // import Spinner from 'react-spinkit';
 
@@ -17,12 +17,14 @@ const LoadingWrapper = styled.div`
 
 export default class PostList extends Component {
   static propTypes = {
-    posts: PropTypes.array.isRequired,
+    posts: PropTypes.nodeList.isRequired,
   };
   render() {
     const { posts } = this.props;
-
-    if (posts.length > 0) {
+    console.log('>>> posts', posts);
+    if (posts.total === 0) {
+      return <div>No thread yet</div>;
+    } else if (posts.total > 0) {
       return this.renderList(posts);
     } else
       return (
@@ -36,7 +38,7 @@ export default class PostList extends Component {
   renderList(posts) {
     return (
       <Wrapper>
-        {posts.map((item, i) => (
+        {posts.nodes.map((item, i) => (
           <PostListItem
             key={i}
             post={item}

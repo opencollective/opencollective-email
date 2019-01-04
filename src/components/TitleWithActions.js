@@ -3,14 +3,11 @@ import PropTypes from '../lib/propTypes';
 import StyledLink from './StyledLink';
 import styled from 'styled-components';
 import Link from './Link';
+import { Title } from '../styles/layout';
+
 const Wrapper = styled.div`
   display: flex;
   align-items: baseline;
-`;
-
-const Title = styled.h1`
-  font-size: 2.8rem;
-  margin-right: 1rem;
 `;
 
 const Actions = styled.div`

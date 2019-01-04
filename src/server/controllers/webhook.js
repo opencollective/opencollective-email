@@ -24,7 +24,10 @@ async function handleFirstTimeUser(groupSlug, email) {
   if (isEmpty(email['stripped-text'])) {
     return await libemail.sendTemplate('confirmJoinGroup', data, email.sender);
   } else {
-    data.post = { html: email['stripped-html'] };
+    data.post = {
+      text: email['stripped-text'],
+      html: email['stripped-html'],
+    };
     return await libemail.sendTemplate('confirmEmail', data, email.sender);
   }
 }

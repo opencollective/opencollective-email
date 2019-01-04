@@ -7,3 +7,7 @@ export const TopBarWrapper = styled.div`
   color: white;
   display: flex;
 `;
+
+export const TopBarItem = styled.div`
+  margin: 0 0.5rem;
+`;

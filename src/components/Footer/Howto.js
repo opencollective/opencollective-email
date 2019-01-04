@@ -15,9 +15,11 @@ export default function Howto({ groupSlug, PostId }) {
           Reply to this thread by sending an email to <Link mailto={threadEmail}>{threadEmail}</Link>
         </HowtoItem>
       )}
-      <HowtoItem icon="✉️">
-        Start a new thread by sending an email to <Link mailto={groupEmail}>{groupEmail}</Link>
-      </HowtoItem>
+      {groupSlug && (
+        <HowtoItem icon="✉️">
+          Start a new thread by sending an email to <Link mailto={groupEmail}>{groupEmail}</Link>
+        </HowtoItem>
+      )}
       <HowtoItem icon="oc">Start a new group by sending an email to :newgroup@{env.DOMAIN}</HowtoItem>
     </HowtoWrapper>
   );

@@ -1,5 +1,19 @@
 {
+  "collective": {
+    "name": "Citizen Spring 🌱",
+    "slug": "citizenspring"
+  },
+  "email": {
+    "from": "CitizenSpring🌱 <info@citizenspring.be>",
+    "mailgun": {
+      "user": "",
+      "password": "",
+      "apiKey": ""
+    }
+  },
   "server": {
+    "domain": "citizenspring.be",
+    "baseUrl": "http://citizenspring.be",
     "database": {
       "options": {
         "port": 5432,

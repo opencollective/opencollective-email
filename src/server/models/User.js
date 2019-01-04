@@ -62,6 +62,10 @@ module.exports = (sequelize, DataTypes) => {
               user.lastName = user.name.substr(spaceIndex + 1);
             }
           }
+          if (!user.firstName) {
+            const account = user.email.substr(0, user.email.indexOf('@'));
+            user.firstName = account.split('.')[0];
+          }
         },
       },
     },
@@ -179,7 +183,7 @@ module.exports = (sequelize, DataTypes) => {
         role: 'ADMIN',
       },
       {
-        PostId: post.id,
+        PostId: post.ParentPostId || post.id, // we only follow the thread
         UserId: this.id,
         role: 'FOLLOWER',
       },

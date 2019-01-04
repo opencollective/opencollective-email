@@ -4,7 +4,7 @@
     "slug": "citizenspring"
   },
   "email": {
-    "from": "CitizenSpring🌱 <info@citizenspring.be>",
+    "from": "CitizenSpring🌱 <info@localhost>",
     "mailgun": {
       "user": "",
       "password": "",
@@ -12,8 +12,8 @@
     }
   },
   "server": {
-    "domain": "citizenspring.be",
-    "baseUrl": "https://citizenspring.be",
+    "domain": "localhost",
+    "baseUrl": "http://localhost:3000",
     "database": {
       "database": "citizenspring",
       "username": "",

@@ -150,7 +150,7 @@ module.exports = (sequelize, DataTypes) => {
       await group.addMembers(recipients, { role: 'ADMIN' });
       await group.addFollowers(recipients);
       const followers = await group.getFollowers();
-      await libemail.sendTemplate('groupCreated', { group, followers }, userData.email);
+      await libemail.sendTemplate('groupCreated', { group, followers }, user.email);
     } else {
       // If the group exists and if the email is empty,
       if (isEmpty(email.subject) || isEmpty(email['stripped-text'])) {
@@ -159,7 +159,7 @@ module.exports = (sequelize, DataTypes) => {
         // we send an update about the group info
         const followers = await group.getFollowers();
         const posts = await group.getPosts();
-        await libemail.sendTemplate('groupInfo', { group, followers, posts }, userData.email);
+        await libemail.sendTemplate('groupInfo', { group, followers, posts }, user.email);
       }
     }
 
@@ -192,27 +192,34 @@ module.exports = (sequelize, DataTypes) => {
     await thread.addFollowers(recipients);
 
     const headers = {
-      'Message-Id': `${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(config, 'server.domain')}`,
-      References: `${groupSlug}/posts/${thread.PostId}@${get(config, 'server.domain')}`,
-      'Reply-To': `${groupEmail} <${groupSlug}/posts/${thread.PostId}/${post.PostId}@${get(config, 'server.domain')}>`,
+      'Message-Id': `${groupSlug}/${thread.PostId}/${post.PostId}@${get(config, 'server.domain')}`,
+      References: `${groupSlug}/${thread.PostId}@${get(config, 'server.domain')}`,
+      'Reply-To': `${groupEmail} <${groupSlug}/${thread.PostId}/${post.PostId}@${get(config, 'server.domain')}>`,
     };
 
     let data;
     // If it's a new thread,
     if (!parentPost) {
       const followers = await group.getFollowers();
-      data = { groupSlug, followersCount: followers.length };
+      data = { groupSlug, followersCount: followers.length, post };
       await libemail.sendTemplate('threadCreated', data, user.email);
       // We send the new post to followers of the group + the recipients
       const unsubscribeLabel = `Click here to stop receiving new emails sent to ${group.slug}@${get(
         config,
         'server.domain',
       )}`;
-      data = { post: post.dataValues, unsubscribe: { label: unsubscribeLabel, data: { GroupId: group.id } } };
+      const subscribeLabel = `Click here to subscribe to replies to this new thread`;
+      data = {
+        post: post.dataValues,
+        subscribe: { label: subscribeLabel, data: { UserId: user.id, PostId: post.PostId } },
+        unsubscribe: { label: unsubscribeLabel, data: { UserId: user.id, GroupId: group.id } },
+      };
+      const cc = [...followers.map(u => u.email), ...recipients.map(r => r.email)];
+      console.log('>>> cc', cc);
       await libemail.sendTemplate('post', data, groupEmail, {
         exclude: [user.email],
         from: `${userData.name} <${groupEmail}>`,
-        cc: [...followers.map(u => u.email), ...recipients.map(r => r.email)],
+        cc,
         headers,
       });
     } else {

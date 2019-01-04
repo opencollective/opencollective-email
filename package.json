@@ -22,7 +22,8 @@
     "prettier": "prettier src/**/*.js test/**/*.js --write",
     "clean": "rm -rf dist src/.next",
     "postinstall": "sh ./scripts/postinstall.sh",
-    "maildev": "./node_modules/.bin/maildev -o"
+    "maildev": "./node_modules/.bin/maildev -o",
+    "simulator": "babel-node scripts/simulator.js"
   },
   "repository": {
     "type": "git",

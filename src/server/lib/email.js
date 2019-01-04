@@ -38,8 +38,17 @@ const libemail = {};
 console.log(`> Using mailgun account ${get(config, 'email.mailgun.user')}`);
 
 const generateCustomTemplate = (options, data) => {
-  let unsubscribeSnippet = '',
+  let subscribeSnippet = '',
+    unsubscribeSnippet = '',
     previewText = '';
+  if (data.subscribe) {
+    subscribeSnippet = `
+      <div class="footer" style="margin-top: 2rem; font-size: 12px; text-decoration: none;">
+        <a href="${data.subscribe.url}">
+          ${data.subscribe.label}
+        </a>
+      </div>`;
+  }
   if (data.unsubscribe) {
     unsubscribeSnippet = `
       <div class="footer" style="margin-top: 2rem; font-size: 12px; text-decoration: none;">
@@ -62,6 +71,7 @@ const generateCustomTemplate = (options, data) => {
       <body>
       ${previewText}
       ${options.bodyContent}
+      ${subscribeSnippet}
       ${unsubscribeSnippet}
       </body>
     </html>
@@ -82,12 +92,28 @@ libemail.generateUnsubscribeUrl = async function(email, where) {
     return;
   }
   const tokenData = {
-    MemberId: member.id,
+    data: { MemberId: member.id },
   };
   const token = createJwt('unfollow', tokenData, '7d');
   return `${config.server.baseUrl}/api/unfollow?token=${token}`;
 };
 
+libemail.generateSubscribeUrl = async function(email, memberData) {
+  const user = await models.User.findByEmail(email);
+  if (!user) {
+    console.warn(`Cannot generate subscribe url for ${email}: user not found`);
+    return null;
+  }
+  memberData.role = 'FOLLOWER';
+  memberData.UserId = user.id;
+  const token = createJwt('follow', { data: memberData }, '7d');
+  return `${config.server.baseUrl}/api/follow?token=${token}`;
+};
+
+/**
+ * returns headers of an email object as sent by mailgun
+ * @POST { sender: email, groupSlug, tags: [string], recipients: [{name, email}], ParentPostId, PostId }
+ */
 libemail.parseHeaders = function(email) {
   if (!email.sender) {
     throw new Error('libemail.parseHeaders: invalid email object');
@@ -142,6 +168,9 @@ libemail.sendTemplate = async function(template, data, to, options = {}) {
     if (get(data, 'unsubscribe.data')) {
       data.unsubscribe.url = await libemail.generateUnsubscribeUrl(recipientEmailAddr, data.unsubscribe.data);
     }
+    if (get(data, 'subscribe.data')) {
+      data.subscribe.url = await libemail.generateSubscribeUrl(recipientEmailAddr, data.subscribe.data);
+    }
     const previewText = templates[template].previewText && templates[template].previewText(data);
     const text = templates[template].text && templates[template].text(data);
     const html = Oy.renderTemplate(templateComponent, { title: subject, previewText }, opts =>
@@ -173,7 +202,7 @@ libemail.sendTemplate = async function(template, data, to, options = {}) {
 
 libemail.send = async function(to, subject, text, html, options = {}) {
   if (!to || !to.match(/[^@]+@.+\..+/)) {
-    console.warning(`libemail.send: invalid to email address: ${to}, skipping`);
+    console.warn(`libemail.send: invalid to email address: ${to}, skipping`);
     return;
   }
   if (options.exclude && options.exclude.includes(to)) {

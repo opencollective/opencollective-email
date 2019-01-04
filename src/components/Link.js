@@ -18,6 +18,13 @@ export default function Link({ href, mailto, color, children }) {
       </StyledA>
     );
   }
+  if (href.match(/^https?:\/\//i)) {
+    return (
+      <StyledA color={color} href={href}>
+        {children}
+      </StyledA>
+    );
+  }
   return (
     <Router.Link route={href}>
       <StyledA color={color}>{children}</StyledA>

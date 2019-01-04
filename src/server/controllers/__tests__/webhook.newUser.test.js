@@ -1,16 +1,11 @@
 import { db, inspectSpy } from '../../lib/test';
 import webhook from '../webhook';
-import { unfollow } from '../api';
 
 import sinon from 'sinon';
 import libemail from '../../lib/email';
 import models from '../../models';
 
 import email1 from '../../mocks/mailgun.email1.json';
-import email2 from '../../mocks/mailgun.email2.json';
-import email3 from '../../mocks/mailgun.email3.json';
-import email4 from '../../mocks/mailgun.email4.json';
-import { inspect } from 'util';
 
 describe('webhook email', () => {
   let sandbox, sendEmailSpy;

@@ -281,6 +281,20 @@ export const GroupType = new GraphQLObjectType({
           return models.User.findById(group.UserId);
         },
       },
+      followers: {
+        type: NodeListType,
+        async resolve(group, args) {
+          const count = await models.Member.count({ where: { GroupId: group.GroupId, role: 'FOLLOWER' } });
+          const rows = await group.getFollowers(args);
+          return {
+            total: count,
+            nodes: rows,
+            type: 'Group',
+            limit: args.limit,
+            offset: args.offset,
+          };
+        },
+      },
       posts: {
         type: NodeListType,
         async resolve(group, args) {
@@ -423,12 +437,6 @@ export const PostType = new GraphQLObjectType({
       followers: {
         type: NodeListType,
         async resolve(post, args) {
-          const query = {
-            where: { ParentPostId: post.PostId },
-            order: [['id', 'ASC']],
-            limit: args.limit,
-            offset: args.offset,
-          };
           const count = await models.Member.count({ where: { PostId: post.PostId, role: 'FOLLOWER' } });
           const rows = await post.getFollowers(args);
           return {

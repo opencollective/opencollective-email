@@ -20,6 +20,16 @@ export const isEmpty = str => {
   return (str || '').trim() === '';
 };
 
+export const pluralize = (singular, n, pluralForm) => {
+  if (n === 1) return singular;
+  return pluralForm || `${singular}s`;
+};
+
+/**
+ * Extracts names and emails from a string with multiple names and emails
+ * @param {*} str eg. "Xavier <xavier@gmail.com>, email2@hotmail.com,"
+ * @POST: [ {name, email}]
+ */
 export const extractNamesAndEmailsFromString = str => {
   const recipients = str.split(',').map(recipient => {
     const matches = recipient.match(/([^<]+)<([^@]+@[^\.]+\.[^>]+)>/);

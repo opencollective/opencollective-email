@@ -31,6 +31,23 @@ export const previewText = ({ groupSlug }) => {
   return `Please confirm sending your email to ${groupSlug}@${get(config, 'server.domain')}`;
 };
 
+export const text = ({ groupSlug, confirmationUrl, post }) => {
+  const groupUrl = `${get(config, 'server.baseUrl')}/${groupSlug}`;
+  return `Thank you for contacting the ${groupSlug} group.
+
+Since this is the first time you are sending an email to this address, we ask you to kindly confirm that you are a human ☺️ We also want to make sure that you understand that all emails sent this email address are published publicly on ${groupUrl}
+
+To continue, click on the link below:
+${confirmationUrl}
+
+
+Note: If you'd like to use another identity, we recommend that you send your email from a different email address.
+
+
+> ${post.text.split('\n').join('\n> ')}
+`;
+};
+
 export const body = ({ groupSlug, confirmationUrl, post }) => {
   const groupUrl = `${get(config, 'server.baseUrl')}/${groupSlug}`;
   return (

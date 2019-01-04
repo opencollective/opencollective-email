@@ -25,7 +25,22 @@ export default class MyDocument extends Document {
                 font-size: 55%;
               }
             }
-          
+            #nprogress {
+              position: absolute;
+              top: 38px;
+              left: 0;
+              height: 5px;
+              width: 100%;
+            }
+            #nprogress .bar {
+              z-index: 2001;
+              height: 4px;
+              background: rgba(57,136,251);
+            }
+            #nprogress .spinner {
+              display: none;
+            }
+                      
             body {
               font-family: "Inter UI", sans-serif;
               font-size: 1.4rem;
